@@ -9,11 +9,12 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("default", new OpenApiInfo
     {
-        // Version = "v1",
         Title = "ToDo API",
         Description = "An ASP.NET Core Web API for managing ToDo items",
     });
 });
+
+builder.Services.ConfigureCoreDependencies();
 
 var app = builder.Build();
 
@@ -24,12 +25,12 @@ if (app.Environment.IsDevelopment())
         c.RouteTemplate = "api-docs/{documentName}/swagger.json";
     });
     app.UseSwaggerUI(c =>
-    {   
+    {
         c.SwaggerEndpoint("/api-docs/default/swagger.json", "Default");
         c.RoutePrefix = "api-docs";
     });
 }
- 
+
 app.UseAuthorization();
 
 app.MapControllers();
