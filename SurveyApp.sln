@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api", "src\Api\Api.csproj",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{9A263568-3229-4B81-91A8-6057606E9BEF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "tests\Core\Core.csproj", "{80819CF6-4A58-486E-8BBE-96832059A013}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Test", "tests\Core.Test\Core.Test.csproj", "{80819CF6-4A58-486E-8BBE-96832059A013}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

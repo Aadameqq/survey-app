@@ -8,23 +8,22 @@ namespace Api.Controllers
     [ApiController]
     public class GreetingsController : ControllerBase
     {
-        private readonly GreetingInteractor _interactor;
+        private readonly GreetingInteractor interactor;
 
         public GreetingsController(GreetingInteractor interactor)
         {
-            _interactor = interactor;
+            this.interactor = interactor;
         }
 
         [HttpGet]
         public async Task<Greeting[]> Get()
         {
-
-            return _interactor.View();
+            return interactor.View();
         }
         [HttpPost]
         public async Task PostAsync([FromBody] string content)
         {
-            _interactor.Create(content);
+            interactor.Create(content);
         }
     }
 }
