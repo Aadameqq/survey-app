@@ -5,11 +5,11 @@ namespace Core.Application;
 
 public class GreetingInteractor
 {
-    private PostgresContext _ctx;
+    private PostgresContext ctx;
 
     public GreetingInteractor(PostgresContext ctx)
     {
-        _ctx = ctx;
+        this.ctx = ctx;
     }
 
     public void Create(string greetingContent)
@@ -19,13 +19,13 @@ public class GreetingInteractor
             Content = greetingContent,
         };
 
-        _ctx.Add(greeting);
-        _ctx.SaveChanges();
+        ctx.Add(greeting);
+        ctx.SaveChanges();
     }
 
     public Greeting[] View()
     {
-        var greetings = _ctx.Greetings.ToArray();
+        var greetings = ctx.Greetings.ToArray();
         return greetings;
     }
 }
