@@ -29,3 +29,15 @@ Apply migration
 ```bash
 dotnet ef database update
 ```
+
+### Linting
+Format
+
+```bash
+dotnet format
+```
+
+Check
+```bash
+dotnet format --verify-no-changes
+```
