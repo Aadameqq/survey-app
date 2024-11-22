@@ -35,8 +35,8 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("docs", new OpenApiInfo
     {
-        Title = "ToDo API",
-        Description = "An ASP.NET Core Web API for managing ToDo items"
+        Title = "Survey App API",
+        Description = "Application programming interface"
     });
 });
 

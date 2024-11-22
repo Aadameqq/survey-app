@@ -31,5 +31,6 @@ public class UsersController(DatabaseContext ctx) : ControllerBase
     [HttpPut("@me")]
     public ActionResult<GetAuthenticatedUserResponse> GetAuthenticated()
     {
+        return NotFound();
     }
 }
