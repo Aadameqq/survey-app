@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 
 namespace Api.Models;
 
-public class DatabaseContext(IOptions<DatabaseConfig> databaseConfig) : DbContext
+public class DatabaseContext(IOptions<DatabaseSettings> databaseConfig) : DbContext
 {
     public DbSet<User> Users { get; set; }
 

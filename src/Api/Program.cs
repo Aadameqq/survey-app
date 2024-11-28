@@ -1,6 +1,6 @@
 using System.Text;
 using Api;
-using Api.Models;
+using Api.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -8,16 +8,9 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddOptions<JwtConfig>()
-    .BindConfiguration("Jwt")
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-builder.Services.AddOptions<DatabaseConfig>()
-    .BindConfiguration("Database")
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
+builder.Services.ConfigureSettings();
 
-var jwtConfig = builder.Services.BuildServiceProvider().GetService<IOptions<JwtConfig>>();
+var jwtConfig = builder.Services.BuildServiceProvider().GetService<IOptions<JwtSettings>>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
@@ -40,7 +33,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddDbContext<DatabaseContext>();
+builder.Services.ConfigureDependencies();
 
 var app = builder.Build();
 
