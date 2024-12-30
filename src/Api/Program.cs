@@ -12,12 +12,18 @@ builder.Services.ConfigureSettings();
 
 var jwtConfig = builder.Services.BuildServiceProvider().GetService<IOptions<JwtSettings>>();
 
+if (jwtConfig is null)
+{
+    throw new InvalidOperationException("JWT is not configured");
+}
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateLifetime = true, ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig.Value.Secret))
+        ValidateLifetime = true, ValidateIssuerSigningKey = true, ValidateIssuer = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig.Value.AccessTokenSecret)),
+        ValidIssuer = jwtConfig.Value.Issuer
     };
 });
 

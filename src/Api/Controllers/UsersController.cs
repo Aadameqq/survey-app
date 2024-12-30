@@ -1,6 +1,7 @@
 using Api.Dtos;
 using Api.Models;
 using Api.Models.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -28,9 +29,10 @@ public class UsersController(UsersRepository usersRepository, PasswordHasher pas
         return CreatedAtAction(nameof(GetAuthenticated), new { });
     }
 
-    [HttpPut("@me")]
+    [HttpGet("@me")]
+    [Authorize]
     public ActionResult<GetAuthenticatedUserResponse> GetAuthenticated()
     {
-        return NotFound();
+        return Ok();
     }
 }

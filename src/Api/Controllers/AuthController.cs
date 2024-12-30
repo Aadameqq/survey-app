@@ -1,30 +1,49 @@
 using Api.Dtos;
 using Api.Models;
+using Api.Models.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(DatabaseContext ctx) : ControllerBase
+public class AuthController(
+    PasswordVerifier passwordVerifier,
+    UsersRepository usersRepository,
+    TokenService tokenService,
+    TokensRepository tokensRepository)
+    : ControllerBase
 {
     [HttpPost]
     public ActionResult<LogInResponse> LogIn([FromBody] LogInBody body)
     {
-        var user = ctx.Users.FirstOrDefault(u => u.Email == body.Email);
+        var user = usersRepository.FindByEmail(body.Email);
 
-        if (user == null) return Unauthorized();
+        if (user is null) return Unauthorized();
 
-        if (!BCrypt.Net.BCrypt.Verify(body.Password, user.Password)) return Unauthorized();
+        if (!passwordVerifier.Verify(body.Password, user.Password)) return Unauthorized();
 
-        // Token creation
+        var refreshTokenPayload = new RefreshTokenPayload
+        {
+            UserId = user.Id
+        };
+        tokensRepository.Create(refreshTokenPayload);
 
-        return Ok();
+        var accessToken = tokenService.GenerateAccessToken(user);
+        var refreshToken = tokenService.GenerateRefreshToken(refreshTokenPayload, user);
+
+        return new LogInResponse(accessToken, refreshToken);
     }
 
     [HttpDelete]
     public IActionResult LogOut()
     {
         return Ok();
+    }
+
+    [HttpPut]
+    public IActionResult RefreshTokenPair()
+    {
+        throw new NotImplementedException();
     }
 }
