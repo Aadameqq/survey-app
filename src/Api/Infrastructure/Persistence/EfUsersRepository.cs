@@ -15,10 +15,13 @@ public class EfUsersRepository(DatabaseContext ctx) : UsersRepository
         return ctx.Users.FirstOrDefault(u => u.Id == id);
     }
 
-
     public void Create(User user)
     {
         ctx.Users.Add(user);
+    }
+
+    public void Flush()
+    {
         ctx.SaveChanges();
     }
 }

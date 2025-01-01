@@ -39,6 +39,9 @@ public class AuthController(
 
         var accessToken = tokenService.CreateAccessToken(session);
 
+        authSessionsRepository.Flush();
+        refreshTokensRepository.Flush();
+
         return new TokenPairResponse(accessToken, refreshToken.Token);
     }
 
@@ -57,6 +60,9 @@ public class AuthController(
 
         authSessionsRepository.Remove(session);
         refreshTokensRepository.RemoveAllInSession(session);
+
+        authSessionsRepository.Flush();
+        refreshTokensRepository.Flush();
 
         return Ok();
     }
@@ -93,6 +99,9 @@ public class AuthController(
         refreshTokensRepository.Persist(newRefreshToken);
 
         var accessToken = tokenService.CreateAccessToken(session);
+
+        authSessionsRepository.Flush();
+        refreshTokensRepository.Flush();
 
         return new TokenPairResponse(accessToken, newRefreshToken.Token);
     }

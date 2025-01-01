@@ -8,13 +8,11 @@ public class EfAuthSessionsRepository(DatabaseContext ctx) : AuthSessionsReposit
     public void Persist(AuthSession session)
     {
         ctx.AuthSessions.Add(session);
-        ctx.SaveChanges();
     }
 
     public void Remove(AuthSession session)
     {
         ctx.AuthSessions.Remove(session);
-        ctx.SaveChanges();
     }
 
     public AuthSession? FindById(Guid sessionId)
@@ -25,5 +23,10 @@ public class EfAuthSessionsRepository(DatabaseContext ctx) : AuthSessionsReposit
     public AuthSession? FindByRefreshToken(RefreshToken refreshToken)
     {
         return ctx.AuthSessions.FirstOrDefault(s => s.Id == refreshToken.SessionId);
+    }
+
+    public void Flush()
+    {
+        ctx.SaveChanges();
     }
 }

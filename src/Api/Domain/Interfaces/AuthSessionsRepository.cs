@@ -6,4 +6,5 @@ public interface AuthSessionsRepository
     void Remove(AuthSession session);
     AuthSession? FindById(Guid sessionId);
     AuthSession? FindByRefreshToken(RefreshToken refreshToken);
+    void Flush();
 }

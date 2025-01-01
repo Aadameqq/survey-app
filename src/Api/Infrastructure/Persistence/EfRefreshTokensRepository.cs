@@ -10,7 +10,6 @@ public class EfRefreshTokensRepository(DatabaseContext ctx)
     public void Persist(RefreshToken token)
     {
         ctx.RefreshTokens.Add(token);
-        ctx.SaveChanges();
     }
 
     public void RemoveAllInSession(AuthSession session)
@@ -26,6 +25,10 @@ public class EfRefreshTokensRepository(DatabaseContext ctx)
     public void Update(RefreshToken token)
     {
         ctx.RefreshTokens.Update(token);
+    }
+
+    public void Flush()
+    {
         ctx.SaveChanges();
     }
 }
