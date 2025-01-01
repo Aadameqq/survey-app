@@ -10,16 +10,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.ConfigureSettings();
 
-var jwtConfig = builder.Services.BuildServiceProvider().GetRequiredService<IOptions<JwtSettings>>();
-
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
+    var jwtConfig = builder.Configuration.GetRequiredSection("Auth").Get<AuthSettings>();
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateLifetime = true, ValidateIssuerSigningKey = true, ValidateIssuer = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig.Value.AccessTokenSecret)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig!.AccessTokenSecret)),
         ValidateAudience = false, //TODO: is this needed
-        ValidIssuer = jwtConfig.Value.Issuer
+        ValidIssuer = jwtConfig.Issuer
     };
 });
 

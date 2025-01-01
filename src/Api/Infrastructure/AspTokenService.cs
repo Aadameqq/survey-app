@@ -8,7 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Api.Infrastructure;
 
-public class AspTokenService(IOptions<JwtSettings> jwtConfig) : TokenService
+public class AspTokenService(IOptions<AuthSettings> jwtConfig) : TokenService
 {
     public string CreateAccessToken(AuthSession session)
     {

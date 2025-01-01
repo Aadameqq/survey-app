@@ -37,6 +37,11 @@ public class UsersController(UsersRepository usersRepository, PasswordHasher pas
         var id = User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
         var user = usersRepository.FindById(Guid.Parse(id));
+        if (user is null)
+        {
+            throw new InvalidOperationException(
+                "The operation could not proceed because the user is logged in but does not exist in the database. This might indicate a corrupted session or data inconsistency.");
+        }
 
         return Ok(new { user.Email });
     }

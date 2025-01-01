@@ -4,7 +4,7 @@ public static class Settings
 {
     public static IServiceCollection ConfigureSettings(this IServiceCollection services)
     {
-        AddSettings<JwtSettings>(services, "Jwt");
+        AddSettings<AuthSettings>(services, "Auth");
         AddSettings<DatabaseSettings>(services, "Database");
         return services;
     }

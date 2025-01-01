@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace Api.Infrastructure;
 
-public class RefreshTokensFactoryImpl(IOptions<JwtSettings> jwtOptions) : RefreshTokensFactory
+public class RefreshTokensFactoryImpl(IOptions<AuthSettings> jwtOptions) : RefreshTokensFactory
 {
     public RefreshToken Create(AuthSession session)
     {
