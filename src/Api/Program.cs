@@ -17,7 +17,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     {
         ValidateLifetime = true, ValidateIssuerSigningKey = true, ValidateIssuer = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig!.AccessTokenSecret)),
-        ValidateAudience = false, //TODO: is this needed
+        ValidateAudience = false,
         ValidIssuer = jwtConfig.Issuer
     };
 });
