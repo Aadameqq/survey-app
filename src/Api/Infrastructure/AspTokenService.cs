@@ -10,13 +10,12 @@ namespace Api.Infrastructure;
 
 public class AspTokenService(IOptions<JwtSettings> jwtConfig) : TokenService
 {
-    private const string RefreshTokenIdClaimType = "refresh";
-
-    public string GenerateAccessToken(User user)
+    public string CreateAccessToken(AuthSession session)
     {
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString())
+            new(ClaimTypes.NameIdentifier, session.UserId.ToString()),
+            new(GetSessionIdClaimType(), session.Id.ToString())
         };
 
         return GenerateToken(
@@ -27,43 +26,9 @@ public class AspTokenService(IOptions<JwtSettings> jwtConfig) : TokenService
         );
     }
 
-
-    public RefreshTokenPayload FetchRefreshTokenPayloadOrFail(string refreshToken)
+    public string GetSessionIdClaimType()
     {
-        var payload = new JwtSecurityTokenHandler().ValidateToken(refreshToken,
-            new TokenValidationParameters
-            {
-                ValidateLifetime = true, ValidateIssuerSigningKey = true, ValidateIssuer = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig.Value.AccessTokenSecret)),
-                ValidIssuer = jwtConfig.Value.Issuer
-            },
-            out _
-        );
-
-        var userId = payload.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
-        var tokenId = payload.Claims.First(c => c.Type == RefreshTokenIdClaimType).Value;
-
-        return new RefreshTokenPayload
-        {
-            UserId = Guid.Parse(userId),
-            Id = Guid.Parse(tokenId)
-        };
-    }
-
-    public string GenerateRefreshToken(RefreshTokenPayload tokenPayload, User user)
-    {
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(RefreshTokenIdClaimType, tokenPayload.Id.ToString())
-        };
-
-        return GenerateToken(
-            claims,
-            jwtConfig.Value.Issuer,
-            jwtConfig.Value.RefreshTokenSecret,
-            jwtConfig.Value.RefreshTokenLifetimeInMinutes
-        );
+        return "sessionId";
     }
 
     private static string GenerateToken(List<Claim> claims, string issuer, string secret, int lifetimeInMinutes)
@@ -72,6 +37,7 @@ public class AspTokenService(IOptions<JwtSettings> jwtConfig) : TokenService
         var token = new JwtSecurityToken(
             claims: claims,
             issuer: issuer,
+            audience: "*",
             notBefore: now,
             expires: now.Add(TimeSpan.FromMinutes(lifetimeInMinutes)),
             signingCredentials: new SigningCredentials(

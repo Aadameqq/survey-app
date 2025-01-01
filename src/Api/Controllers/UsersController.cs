@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Api.Dtos;
 using Api.Models;
 using Api.Models.Interfaces;
@@ -33,6 +34,10 @@ public class UsersController(UsersRepository usersRepository, PasswordHasher pas
     [Authorize]
     public ActionResult<GetAuthenticatedUserResponse> GetAuthenticated()
     {
-        return Ok();
+        var id = User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+        var user = usersRepository.FindById(Guid.Parse(id));
+
+        return Ok(new { user.Email });
     }
 }

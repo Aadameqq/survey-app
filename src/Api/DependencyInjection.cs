@@ -12,7 +12,9 @@ public static class DependencyInjection
         services.AddScoped<PasswordHasher, BCryptPasswordService>();
         services.AddScoped<PasswordVerifier, BCryptPasswordService>();
         services.AddScoped<UsersRepository, EfUsersRepository>();
-        services.AddScoped<TokensRepository, EfTokensRepository>();
+        services.AddScoped<RefreshTokensRepository, EfRefreshTokensRepository>();
+        services.AddScoped<AuthSessionsRepository, EfAuthSessionsRepository>();
+        services.AddScoped<RefreshTokensFactory, RefreshTokensFactoryImpl>();
         services.AddScoped<TokenService, AspTokenService>();
         return services;
     }
