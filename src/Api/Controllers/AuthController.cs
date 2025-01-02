@@ -1,6 +1,8 @@
 using Api.Dtos;
-using Api.Models;
-using Api.Models.Interfaces;
+using Core.Domain;
+using Core.Exceptions;
+using Core.Interactors;
+using Core.Ports;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,100 +11,62 @@ namespace Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class AuthController(
-    PasswordVerifier passwordVerifier,
-    UsersRepository usersRepository,
-    TokenService tokenService,
-    RefreshTokensRepository refreshTokensRepository,
-    AuthSessionsRepository authSessionsRepository,
-    RefreshTokensFactory refreshTokensFactory
+    AuthInteractor authInteractor,
+    TokenService tokenService //TODO:
 )
     : ControllerBase
 {
     [HttpPost]
-    public ActionResult<TokenPairResponse> LogIn([FromBody] LogInBody body)
+    public async Task<ActionResult<TokenPairResponse>> LogIn([FromBody] LogInBody body)
     {
-        var user = usersRepository.FindByEmail(body.Email);
+        var result = await authInteractor.LogIn(body.Email, body.Password);
 
-        if (user is null) return Unauthorized();
-
-        if (!passwordVerifier.Verify(body.Password, user.Password)) return Unauthorized();
-
-        var session = new AuthSession
+        if (result.IsFailure)
         {
-            UserId = user.Id
-        };
+            return result.Exception switch
+            {
+                NoSuchException<User> _ => Unauthorized(),
+                InvalidCredentialsException<User> _ => Unauthorized(),
+                _ => throw result.Exception
+            };
+        }
 
-        var refreshToken = refreshTokensFactory.Create(session);
-
-        authSessionsRepository.Persist(session);
-        refreshTokensRepository.Persist(refreshToken);
-
-        var accessToken = tokenService.CreateAccessToken(session);
-
-        authSessionsRepository.Flush();
-        refreshTokensRepository.Flush();
-
-        return new TokenPairResponse(accessToken, refreshToken.Token);
+        return new TokenPairResponse(result.Value.AccessToken, result.Value.RefreshToken);
     }
 
     [HttpDelete]
     [Authorize]
-    public IActionResult LogOut()
+    public async Task<IActionResult> LogOut()
     {
-        var sessionId = Guid.Parse(User.Claims.First(c => c.Type == tokenService.GetSessionIdClaimType()).Value);
+        var sessionId = User.Claims.First(c => c.Type == tokenService.GetSessionIdClaimType()).Value;
 
-        var session = authSessionsRepository.FindById(sessionId);
+        var result = await authInteractor.LogOut(Guid.Parse(sessionId));
 
-        if (session is null)
+        if (result is { IsFailure: true, Exception: NoSuchException<AuthSession> })
         {
             return Unauthorized();
         }
-
-        authSessionsRepository.Remove(session);
-        refreshTokensRepository.RemoveAllInSession(session);
-
-        authSessionsRepository.Flush();
-        refreshTokensRepository.Flush();
 
         return Ok();
     }
 
     [HttpPut]
-    public ActionResult<TokenPairResponse> RefreshTokens([FromBody] RefreshTokensBody body)
+    public async Task<ActionResult<TokenPairResponse>> RefreshTokens([FromBody] RefreshTokensBody body)
     {
-        var refreshToken = refreshTokensRepository.FindByToken(body.RefreshToken);
+        var result = await authInteractor.RefreshTokens(body.RefreshToken);
 
-        if (refreshToken is null)
+        if (result.IsFailure)
         {
-            return Unauthorized();
+            return result.Exception switch
+            {
+                NoSuchException<RefreshToken> _ => Unauthorized(),
+                NoSuchException<AuthSession> _ => throw new InvalidOperationException(
+                    "Session is null, indicating a logic error or database inconsistency."),
+                InvalidCredentialsException<RefreshToken> _ => Unauthorized(),
+                _ => throw result.Exception
+            };
         }
 
-        var session = authSessionsRepository.FindByRefreshToken(refreshToken);
-
-        if (session is null)
-        {
-            throw new InvalidOperationException("Session is null, indicating a logic error or database inconsistency.");
-        }
-
-        if (refreshToken.IsRevoked() || refreshToken.HasExpired())
-        {
-            refreshTokensRepository.RemoveAllInSession(session);
-            authSessionsRepository.Remove(session);
-            return Unauthorized();
-        }
-
-        refreshToken.Revoke();
-        refreshTokensRepository.Update(refreshToken);
-
-        var newRefreshToken = refreshTokensFactory.Create(session);
-
-        refreshTokensRepository.Persist(newRefreshToken);
-
-        var accessToken = tokenService.CreateAccessToken(session);
-
-        authSessionsRepository.Flush();
-        refreshTokensRepository.Flush();
-
-        return new TokenPairResponse(accessToken, newRefreshToken.Token);
+        return new TokenPairResponse(result.Value.AccessToken, result.Value.RefreshToken);
     }
 }

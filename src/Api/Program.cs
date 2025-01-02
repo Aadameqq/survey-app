@@ -1,18 +1,19 @@
 using System.Text;
-using Api;
-using Api.Settings;
+using Api.Options;
+using Core;
+using Infrastructure;
+using Infrastructure.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.ConfigureSettings();
+builder.Services.ConfigureOptions();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
-    var jwtConfig = builder.Configuration.GetRequiredSection("Auth").Get<AuthSettings>();
+    var jwtConfig = builder.Configuration.GetRequiredSection("Auth").Get<AuthOptions>();
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateLifetime = true, ValidateIssuerSigningKey = true, ValidateIssuer = true,
@@ -58,7 +59,8 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.ConfigureDependencies();
+builder.Services.ConfigureInfrastructureDependencies();
+builder.Services.ConfigureCoreDependencies();
 
 var app = builder.Build();
 

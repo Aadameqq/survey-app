@@ -1,7 +1,8 @@
 using System.Security.Claims;
 using Api.Dtos;
-using Api.Models;
-using Api.Models.Interfaces;
+using Core.Domain;
+using Core.Exceptions;
+using Core.Interactors;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,40 +10,41 @@ namespace Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class UsersController(UsersRepository usersRepository, PasswordHasher passwordHasher) : ControllerBase
+public class UsersController(UserInteractor userInteractor) : ControllerBase
 {
     [HttpPost("")]
-    public IActionResult Create([FromBody] CreateUserBody body)
+    public async Task<IActionResult> Create([FromBody] CreateUserBody body)
     {
-        var found = usersRepository.FindByEmail(body.Email);
-        if (found != null) return Conflict("Email already exists");
+        var result = await userInteractor.Create(body.UserName, body.Email, body.Password);
 
-        var hashedPassword = passwordHasher.HashPassword(body.Password);
-
-        var user = new User
+        if (result.IsFailure)
         {
-            Email = body.Email,
-            UserName = body.UserName,
-            Password = hashedPassword
-        };
-        usersRepository.Create(user);
+            if (result.Exception is AlreadyExistsException<User>)
+            {
+                return Conflict();
+            }
+        }
 
         return CreatedAtAction(nameof(GetAuthenticated), new { });
     }
 
     [HttpGet("@me")]
     [Authorize]
-    public ActionResult<GetAuthenticatedUserResponse> GetAuthenticated()
+    public async Task<ActionResult<GetAuthenticatedUserResponse>> GetAuthenticated()
     {
         var id = User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
-        var user = usersRepository.FindById(Guid.Parse(id));
-        if (user is null)
+        var result = await userInteractor.Get(Guid.Parse(id));
+
+        if (result.IsFailure)
         {
-            throw new InvalidOperationException(
-                "The operation could not proceed because the user is logged in but does not exist in the database. This might indicate a corrupted session or data inconsistency.");
+            if (result.Exception is NoSuchException<User>)
+            {
+                throw new InvalidOperationException(
+                    "The operation could not proceed because the user is logged in but does not exist in the database. This might indicate a corrupted session or data inconsistency.");
+            }
         }
 
-        return Ok(new { user.Email });
+        return Ok(new { result.Value.Email });
     }
 }
