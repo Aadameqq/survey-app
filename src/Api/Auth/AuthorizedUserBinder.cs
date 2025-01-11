@@ -13,7 +13,7 @@ public class AuthorizedUserBinder : IModelBinder
         }
         else
         {
-            throw new InvalidOperationException("AuthorizedUser cannot be used without authorization.");
+            throw new InvalidOperationException($"{nameof(AuthorizedUser)} cannot be used without authorization.");
         }
 
         return Task.CompletedTask;

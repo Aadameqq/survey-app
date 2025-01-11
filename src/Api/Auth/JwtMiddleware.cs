@@ -2,24 +2,13 @@ using Core.Interactors;
 
 namespace Api.Auth;
 
-public class JwtMiddleware
+public class JwtMiddleware(RequestDelegate next, AccessTokenInteractor tokenInteractor)
 {
-    private readonly RequestDelegate next;
-    private readonly AccessTokenInteractor tokenInteractor;
-
-    public JwtMiddleware(RequestDelegate _next, AccessTokenInteractor _tokenInteractor)
-    {
-        next = _next;
-        tokenInteractor = _tokenInteractor;
-    }
-
     public async Task InvokeAsync(HttpContext ctx)
     {
         var attribute = ctx.GetEndpoint()?.Metadata
             .OfType<RequireAuthAttribute>()
             .FirstOrDefault();
-
-        Console.WriteLine("hello!");
 
         if (attribute is null)
         {
