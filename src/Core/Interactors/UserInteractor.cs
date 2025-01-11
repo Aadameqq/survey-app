@@ -10,7 +10,7 @@ public class UserInteractor(UsersRepository usersRepository, PasswordHasher pass
     {
         var found = await usersRepository.FindByEmail(email);
 
-        if (found != null) return new AlreadyExistsException<User>();
+        if (found != null) return new AlreadyExists<User>();
 
         var hashedPassword = passwordHasher.HashPassword(plainPassword);
 
@@ -29,10 +29,9 @@ public class UserInteractor(UsersRepository usersRepository, PasswordHasher pass
     public async Task<Result<User>> Get(Guid id)
     {
         var found = await usersRepository.FindById(id);
-
         if (found is null)
         {
-            return new NoSuchException<User>();
+            return new NoSuch<User>();
         }
 
         return found;

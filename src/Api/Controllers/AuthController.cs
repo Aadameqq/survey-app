@@ -1,3 +1,4 @@
+using Api.Auth;
 using Api.Dtos;
 using Core.Domain;
 using Core.Exceptions;
@@ -11,8 +12,7 @@ namespace Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class AuthController(
-    AuthInteractor authInteractor,
-    TokenService tokenService //TODO:
+    AuthInteractor authInteractor
 )
     : ControllerBase
 {
@@ -25,8 +25,8 @@ public class AuthController(
         {
             return result.Exception switch
             {
-                NoSuchException<User> _ => Unauthorized(),
-                InvalidCredentialsException<User> _ => Unauthorized(),
+                NoSuch<User> _ => Unauthorized(),
+                InvalidCredentials<User> _ => Unauthorized(),
                 _ => throw result.Exception
             };
         }
@@ -35,14 +35,14 @@ public class AuthController(
     }
 
     [HttpDelete]
-    [Authorize]
-    public async Task<IActionResult> LogOut()
+    [RequireAuth]
+    public async Task<IActionResult> LogOut(AuthorizedUser authUser)
     {
-        var sessionId = User.Claims.First(c => c.Type == tokenService.GetSessionIdClaimType()).Value;
+        Console.WriteLine(authUser.SessionId);
 
-        var result = await authInteractor.LogOut(Guid.Parse(sessionId));
+        var result = await authInteractor.LogOut(authUser.SessionId);
 
-        if (result is { IsFailure: true, Exception: NoSuchException<AuthSession> })
+        if (result is { IsFailure: true, Exception: NoSuch<AuthSession> })
         {
             return Unauthorized();
         }
@@ -59,10 +59,10 @@ public class AuthController(
         {
             return result.Exception switch
             {
-                NoSuchException<RefreshToken> _ => Unauthorized(),
-                NoSuchException<AuthSession> _ => throw new InvalidOperationException(
+                NoSuch<RefreshToken> _ => Unauthorized(),
+                NoSuch<AuthSession> _ => throw new InvalidOperationException(
                     "Session is null, indicating a logic error or database inconsistency."),
-                InvalidCredentialsException<RefreshToken> _ => Unauthorized(),
+                InvalidCredentials<RefreshToken> _ => Unauthorized(),
                 _ => throw result.Exception
             };
         }

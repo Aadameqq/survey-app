@@ -15,7 +15,7 @@ public static class DependencyInjection
         services.AddScoped<RefreshTokensRepository, EfRefreshTokensRepository>();
         services.AddScoped<AuthSessionsRepository, EfAuthSessionsRepository>();
         services.AddScoped<RefreshTokensFactory, RefreshTokensFactoryImpl>();
-        services.AddScoped<TokenService, AspTokenService>();
+        services.AddSingleton<AccessTokenService, AspAccessTokenService>();
         return services;
     }
 }

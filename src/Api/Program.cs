@@ -1,29 +1,19 @@
-using System.Text;
+using Api.Auth;
 using Api.Options;
 using Core;
 using Infrastructure;
-using Infrastructure.Options;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.ConfigureOptions();
+builder.Services.ConfigureInfrastructureDependencies();
+builder.Services.ConfigureCoreDependencies();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+builder.Services.AddControllers(options =>
 {
-    var jwtConfig = builder.Configuration.GetRequiredSection("Auth").Get<AuthOptions>();
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateLifetime = true, ValidateIssuerSigningKey = true, ValidateIssuer = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig!.AccessTokenSecret)),
-        ValidateAudience = false,
-        ValidIssuer = jwtConfig.Issuer
-    };
+    options.ModelBinderProviders.Insert(0, new AuthorizedUserBinderProvider());
 });
-
-builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -34,8 +24,7 @@ builder.Services.AddSwaggerGen(options =>
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",
         BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Wprowadź token JWT w formacie: Bearer {your token}"
+        In = ParameterLocation.Header
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -57,10 +46,11 @@ builder.Services.AddSwaggerGen(options =>
         Title = "Survey App API",
         Description = "Application programming interface"
     });
+
+    options.OperationFilter<IgnoreAuthorizedUserBodyFilter>();
+    options.DocumentFilter<RemoveAuthorizedUserSchemaFilter>();
 });
 
-builder.Services.ConfigureInfrastructureDependencies();
-builder.Services.ConfigureCoreDependencies();
 
 var app = builder.Build();
 
@@ -74,9 +64,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseAuthentication();
-app.UseAuthorization();
-
+app.UseMiddleware<JwtMiddleware>();
 app.MapControllers();
 
 app.Run();

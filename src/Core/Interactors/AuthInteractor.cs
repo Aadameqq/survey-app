@@ -11,7 +11,7 @@ public class AuthInteractor(
     RefreshTokensFactory refreshTokensFactory,
     RefreshTokensRepository refreshTokensRepository,
     AuthSessionsRepository authSessionsRepository,
-    TokenService tokenService)
+    AccessTokenService accessTokenService)
 {
     public async Task<Result<TokenPairOutput>> LogIn(string email, string password)
     {
@@ -19,12 +19,12 @@ public class AuthInteractor(
 
         if (user is null)
         {
-            return new NoSuchException<User>();
+            return new NoSuch<User>();
         }
 
         if (!passwordVerifier.Verify(password, user.Password))
         {
-            return new InvalidCredentialsException<User>();
+            return new InvalidCredentials<User>();
         }
 
         var session = new AuthSession()
@@ -47,7 +47,7 @@ public class AuthInteractor(
 
         if (session is null)
         {
-            return new NoSuchException<AuthSession>();
+            return new NoSuch<AuthSession>();
         }
 
         await DeleteSession(session);
@@ -61,20 +61,20 @@ public class AuthInteractor(
 
         if (refreshToken is null)
         {
-            return new NoSuchException<RefreshToken>();
+            return new NoSuch<RefreshToken>();
         }
 
         var session = await authSessionsRepository.FindByRefreshToken(refreshToken);
 
         if (session is null)
         {
-            return new NoSuchException<AuthSession>();
+            return new NoSuch<AuthSession>();
         }
 
         if (refreshToken.IsRevoked() || refreshToken.HasExpired())
         {
             await DeleteSession(session);
-            return new InvalidCredentialsException<RefreshToken>();
+            return new InvalidCredentials<RefreshToken>();
         }
 
         refreshToken.Revoke();
@@ -101,7 +101,7 @@ public class AuthInteractor(
         var refreshToken = refreshTokensFactory.Create(session);
         await refreshTokensRepository.Persist(refreshToken);
 
-        var accessToken = tokenService.CreateAccessToken(session);
+        var accessToken = accessTokenService.Create(session);
 
         return new TokenPairOutput(accessToken, refreshToken.Token);
     }

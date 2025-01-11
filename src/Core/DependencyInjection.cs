@@ -9,6 +9,7 @@ public static class DependencyInjection
     {
         services.AddScoped<UserInteractor>();
         services.AddScoped<AuthInteractor>();
+        services.AddSingleton<AccessTokenInteractor>();
         return services;
     }
 }

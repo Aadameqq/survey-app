@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Api.Auth;
 using Api.Dtos;
 using Core.Domain;
 using Core.Exceptions;
@@ -19,7 +20,7 @@ public class UsersController(UserInteractor userInteractor) : ControllerBase
 
         if (result.IsFailure)
         {
-            if (result.Exception is AlreadyExistsException<User>)
+            if (result.Exception is AlreadyExists<User>)
             {
                 return Conflict();
             }
@@ -29,16 +30,14 @@ public class UsersController(UserInteractor userInteractor) : ControllerBase
     }
 
     [HttpGet("@me")]
-    [Authorize]
-    public async Task<ActionResult<GetAuthenticatedUserResponse>> GetAuthenticated()
+    [RequireAuth]
+    public async Task<ActionResult<GetAuthenticatedUserResponse>> GetAuthenticated(AuthorizedUser user)
     {
-        var id = User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
-
-        var result = await userInteractor.Get(Guid.Parse(id));
+        var result = await userInteractor.Get(user.UserId);
 
         if (result.IsFailure)
         {
-            if (result.Exception is NoSuchException<User>)
+            if (result.Exception is NoSuch<User>)
             {
                 throw new InvalidOperationException(
                     "The operation could not proceed because the user is logged in but does not exist in the database. This might indicate a corrupted session or data inconsistency.");

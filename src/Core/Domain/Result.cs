@@ -4,7 +4,6 @@ public readonly struct Result<T>
 {
     private enum ResultState
     {
-        Null,
         Failure,
         Success
     }
@@ -16,7 +15,6 @@ public readonly struct Result<T>
 
     public bool IsSuccess => _state == ResultState.Success;
     public bool IsFailure => _state == ResultState.Failure;
-    public bool IsNull => _state == ResultState.Null;
 
     public Result(T value)
     {
@@ -32,9 +30,14 @@ public readonly struct Result<T>
         _state = ResultState.Failure;
     }
 
-    public static implicit operator Result<T>(T? value)
+    public static implicit operator Result<T>(T value)
     {
-        return value is not null ? new Result<T>(value) : new Result<T>();
+        if (value is null)
+        {
+            throw new ArgumentNullException($"Result value cannot be null");
+        }
+
+        return new Result<T>(value);
     }
 
     public static implicit operator Result<T>(Exception exception)
