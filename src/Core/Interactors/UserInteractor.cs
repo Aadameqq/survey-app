@@ -22,6 +22,7 @@ public class UserInteractor(UsersRepository usersRepository, PasswordHasher pass
         };
 
         await usersRepository.Create(user);
+        await usersRepository.Flush();
 
         return Result.Success();
     }

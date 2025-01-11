@@ -22,9 +22,10 @@ public class EfRefreshTokensRepository(DatabaseContext ctx)
         return ctx.RefreshTokens.FirstOrDefaultAsync(t => t.Token == token);
     }
 
-    public async Task Update(RefreshToken token)
+    public Task Update(RefreshToken token)
     {
         ctx.RefreshTokens.Update(token);
+        return Task.CompletedTask;
     }
 
     public async Task Flush()

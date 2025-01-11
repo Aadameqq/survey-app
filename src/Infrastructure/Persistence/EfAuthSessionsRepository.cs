@@ -11,9 +11,10 @@ public class EfAuthSessionsRepository(DatabaseContext ctx) : AuthSessionsReposit
         await ctx.AuthSessions.AddAsync(session);
     }
 
-    public async Task Remove(AuthSession session)
+    public Task Remove(AuthSession session)
     {
         ctx.AuthSessions.Remove(session);
+        return Task.CompletedTask;
     }
 
     public Task<AuthSession?> FindById(Guid sessionId)
