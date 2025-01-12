@@ -6,22 +6,19 @@ using Microsoft.Extensions.Options;
 
 namespace Infrastructure;
 
-public class RefreshTokensFactoryImpl(IOptions<AuthOptions> jwtOptions) : RefreshTokensFactory
+public class RefreshTokensFactoryImpl(IOptions<AuthOptions> authOptions) : RefreshTokensFactory
 {
     public RefreshToken Create(AuthSession session)
     {
-        return new RefreshToken
-        {
-            Session = session,
-            Token = GenerateRandomToken(),
-            LifeSpan = TimeSpan.FromMinutes(jwtOptions.Value.RefreshTokenLifetimeInMinutes)
-        };
+        var lifeSpan = authOptions.Value.RefreshTokenLifetimeInMinutes;
+        var expires = DateTime.UtcNow.AddMinutes(lifeSpan);
+        return new RefreshToken(session, expires, GenerateRandomToken());
     }
 
     private string GenerateRandomToken()
     {
         var rng = RandomNumberGenerator.Create();
-        var randomBytes = new byte[32];
+        var randomBytes = new byte[64];
         rng.GetBytes(randomBytes);
         return Convert.ToBase64String(randomBytes);
     }

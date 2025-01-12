@@ -12,11 +12,6 @@ public class EfRefreshTokensRepository(DatabaseContext ctx)
         await ctx.RefreshTokens.AddAsync(token);
     }
 
-    public async Task RemoveAllInSession(AuthSession session)
-    {
-        await ctx.RefreshTokens.Where(t => t.SessionId == session.Id).ExecuteDeleteAsync();
-    }
-
     public Task<RefreshToken?> FindByToken(string token)
     {
         return ctx.RefreshTokens.FirstOrDefaultAsync(t => t.Token == token);

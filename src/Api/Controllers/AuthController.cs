@@ -26,7 +26,7 @@ public class AuthController(
             return result.Exception switch
             {
                 NoSuch<User> _ => Unauthorized(),
-                InvalidCredentials<User> _ => Unauthorized(),
+                InvalidCredentials _ => Unauthorized(),
                 _ => throw result.Exception
             };
         }
@@ -60,9 +60,7 @@ public class AuthController(
             return result.Exception switch
             {
                 NoSuch<RefreshToken> _ => Unauthorized(),
-                NoSuch<AuthSession> _ => throw new InvalidOperationException(
-                    "Session is null, indicating a logic error or database inconsistency."),
-                InvalidCredentials<RefreshToken> _ => Unauthorized(),
+                InvalidToken _ => Unauthorized(),
                 _ => throw result.Exception
             };
         }

@@ -22,12 +22,12 @@ docker-compose up database
 
 Create migration
 ```bash
-dotnet ef migrations add MigrationName
+dotnet ef migrations add MigrationName --project ./src/Infrastructure --startup-project ./src/Api
 ```
 
 Apply migration
 ```bash
-dotnet ef database update
+dotnet ef database update --project ./src/Infrastructure --startup-project ./src/Api
 ```
 
 ### Linting

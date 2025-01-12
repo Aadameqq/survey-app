@@ -15,4 +15,25 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
     {
         optionsBuilder.UseNpgsql(databaseConfig.Value.ConnectionString);
     }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<RefreshToken>(b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<bool>("_revoked").HasColumnName("Revoked");
+            b.Property<DateTime>("_expiredAt").HasColumnName("ExpiredAt");
+
+            b.HasOne(rt => rt.Session)
+                .WithMany()
+                .HasForeignKey("SessionId")
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AuthSession>(b =>
+        {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
+            b.Property<Guid>("UserId");
+        });
+    }
 }

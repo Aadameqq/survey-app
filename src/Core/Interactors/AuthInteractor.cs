@@ -16,7 +16,6 @@ public class AuthInteractor(
     public async Task<Result<TokenPairOutput>> LogIn(string email, string password)
     {
         var user = await usersRepository.FindByEmail(email);
-
         if (user is null)
         {
             return new NoSuch<User>();
@@ -24,20 +23,12 @@ public class AuthInteractor(
 
         if (!passwordVerifier.Verify(password, user.Password))
         {
-            return new InvalidCredentials<User>();
+            return new InvalidCredentials();
         }
 
-        var session = new AuthSession()
-        {
-            UserId = user.Id
-        };
-        await authSessionsRepository.Persist(session);
-
+        var session = new AuthSession(user.Id);
         var tokenPair = await CreateTokenPair(session);
-
-        await authSessionsRepository.Flush();
         await refreshTokensRepository.Flush();
-
         return tokenPair;
     }
 
@@ -50,7 +41,8 @@ public class AuthInteractor(
             return new NoSuch<AuthSession>();
         }
 
-        await DeleteSession(session);
+        await authSessionsRepository.Remove(session);
+        await authSessionsRepository.Flush();
 
         return Result.Success();
     }
@@ -64,17 +56,13 @@ public class AuthInteractor(
             return new NoSuch<RefreshToken>();
         }
 
-        var session = await authSessionsRepository.FindByRefreshToken(refreshToken);
+        var session = refreshToken.Session;
 
-        if (session is null)
+        if (refreshToken.IsInvalid())
         {
-            return new NoSuch<AuthSession>();
-        }
-
-        if (refreshToken.IsRevoked() || refreshToken.HasExpired())
-        {
-            await DeleteSession(session);
-            return new InvalidCredentials<RefreshToken>();
+            await authSessionsRepository.Remove(session);
+            await authSessionsRepository.Flush();
+            return new InvalidToken();
         }
 
         refreshToken.Revoke();
@@ -82,18 +70,8 @@ public class AuthInteractor(
 
         var tokenPair = await CreateTokenPair(session);
 
-        await authSessionsRepository.Flush();
         await refreshTokensRepository.Flush();
-
         return tokenPair;
-    }
-
-    private async Task DeleteSession(AuthSession session)
-    {
-        await refreshTokensRepository.RemoveAllInSession(session);
-        await authSessionsRepository.Remove(session);
-        await authSessionsRepository.Flush();
-        await refreshTokensRepository.Flush();
     }
 
     private async Task<TokenPairOutput> CreateTokenPair(AuthSession session)

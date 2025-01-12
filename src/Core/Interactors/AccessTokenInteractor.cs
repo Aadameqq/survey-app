@@ -13,7 +13,7 @@ public class AccessTokenInteractor(AccessTokenService accessTokenService)
 
         if (payload is null)
         {
-            return new InvalidCredentials();
+            return new InvalidToken();
         }
 
         return payload;
