@@ -38,8 +38,6 @@ public class AuthController(
     [RequireAuth]
     public async Task<IActionResult> LogOut(AuthorizedUser authUser)
     {
-        Console.WriteLine(authUser.SessionId);
-
         var result = await authInteractor.LogOut(authUser.SessionId);
 
         if (result is { IsFailure: true, Exception: NoSuch<AuthSession> })
