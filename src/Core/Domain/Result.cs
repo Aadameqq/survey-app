@@ -2,39 +2,39 @@ namespace Core.Domain;
 
 public readonly struct Result<T>
 {
-    private enum ResultState
-    {
-        Failure,
-        Success
-    }
-
-    private readonly ResultState _state;
-
-    public T Value { get; }
-    public Exception Exception { get; }
-
-    public bool IsSuccess => _state == ResultState.Success;
-    public bool IsFailure => _state == ResultState.Failure;
+    private readonly ResultState state;
 
     public Result(T value)
     {
         Value = value;
         Exception = null!;
-        _state = ResultState.Success;
+        state = ResultState.Success;
     }
 
     public Result(Exception exception)
     {
         Value = default!;
         Exception = exception;
-        _state = ResultState.Failure;
+        state = ResultState.Failure;
     }
+
+    private enum ResultState
+    {
+        Failure,
+        Success,
+    }
+
+    public T Value { get; }
+    public Exception Exception { get; }
+
+    public bool IsSuccess => state == ResultState.Success;
+    public bool IsFailure => state == ResultState.Failure;
 
     public static implicit operator Result<T>(T value)
     {
         if (value is null)
         {
-            throw new ArgumentNullException($"Result value cannot be null");
+            throw new ArgumentNullException("Result value cannot be null");
         }
 
         return new Result<T>(value);
@@ -65,7 +65,7 @@ public readonly struct Result(Exception exception)
 
     public static Result Success()
     {
-        return new Result();
+        return default;
     }
 
     public static Result Failure(Exception exception)

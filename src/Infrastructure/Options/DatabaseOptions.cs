@@ -4,5 +4,6 @@ namespace Infrastructure.Options;
 
 public class DatabaseOptions
 {
-    [Required] public required string ConnectionString { get; init; }
+    [Required]
+    public required string ConnectionString { get; init; }
 }

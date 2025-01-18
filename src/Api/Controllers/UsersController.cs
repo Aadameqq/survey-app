@@ -1,10 +1,8 @@
-using System.Security.Claims;
 using Api.Auth;
 using Api.Dtos;
 using Core.Domain;
 using Core.Exceptions;
 using Core.Interactors;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -31,7 +29,9 @@ public class UsersController(UserInteractor userInteractor) : ControllerBase
 
     [HttpGet("@me")]
     [RequireAuth]
-    public async Task<ActionResult<GetAuthenticatedUserResponse>> GetAuthenticated(AuthorizedUser user)
+    public async Task<ActionResult<GetAuthenticatedUserResponse>> GetAuthenticated(
+        AuthorizedUser user
+    )
     {
         var result = await userInteractor.Get(user.UserId);
 
@@ -40,7 +40,8 @@ public class UsersController(UserInteractor userInteractor) : ControllerBase
             if (result.Exception is NoSuch<User>)
             {
                 throw new InvalidOperationException(
-                    "The operation could not proceed because the user is logged in but does not exist in the database. This might indicate a corrupted session or data inconsistency.");
+                    "The operation could not proceed because the user is logged in but does not exist in the database. This might indicate a corrupted session or data inconsistency."
+                );
             }
         }
 

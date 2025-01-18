@@ -12,15 +12,18 @@ namespace Infrastructure;
 
 public class AspAccessTokenService(IOptions<AuthOptions> authOptions) : AccessTokenService
 {
-    private readonly SymmetricSecurityKey signingKey = new(Encoding.UTF8.GetBytes(authOptions.Value.AccessTokenSecret));
-    private const string sessionIdClaimType = "sessionId";
+    private const string SessionIdClaimType = "sessionId";
+
+    private readonly SymmetricSecurityKey signingKey = new(
+        Encoding.UTF8.GetBytes(authOptions.Value.AccessTokenSecret)
+    );
 
     public string Create(AuthSession session)
     {
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, session.UserId.ToString()),
-            new(sessionIdClaimType, session.Id.ToString())
+            new(SessionIdClaimType, session.Id.ToString()),
         };
 
         return GenerateToken(
@@ -39,12 +42,18 @@ public class AspAccessTokenService(IOptions<AuthOptions> authOptions) : AccessTo
             ValidateIssuer = true,
             ValidIssuer = authOptions.Value.Issuer,
             ValidateAudience = false,
-            IssuerSigningKey = signingKey
+            IssuerSigningKey = signingKey,
         };
         try
         {
-            var principal = await Task.Run(() =>
-                new JwtSecurityTokenHandler().ValidateToken(accessToken, validationParameters, out var token));
+            var principal = await Task.Run(
+                () =>
+                    new JwtSecurityTokenHandler().ValidateToken(
+                        accessToken,
+                        validationParameters,
+                        out var token
+                    )
+            );
 
             if (principal is null)
             {
@@ -52,7 +61,7 @@ public class AspAccessTokenService(IOptions<AuthOptions> authOptions) : AccessTo
             }
 
             var userId = Guid.Parse(GetClaim(principal, ClaimTypes.NameIdentifier));
-            var sessionId = Guid.Parse(GetClaim(principal, sessionIdClaimType));
+            var sessionId = Guid.Parse(GetClaim(principal, SessionIdClaimType));
 
             return new AccessTokenPayload(userId, sessionId);
         }
@@ -82,8 +91,10 @@ public class AspAccessTokenService(IOptions<AuthOptions> authOptions) : AccessTo
             audience: "*",
             notBefore: now,
             expires: now.Add(TimeSpan.FromMinutes(lifetimeInMinutes)),
-            signingCredentials: new SigningCredentials(signingKey,
-                SecurityAlgorithms.HmacSha256Signature)
+            signingCredentials: new SigningCredentials(
+                signingKey,
+                SecurityAlgorithms.HmacSha256Signature
+            )
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);

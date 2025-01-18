@@ -4,40 +4,43 @@ using Core.Interactors;
 using Core.Ports;
 using Moq;
 
-namespace Core.Tests;
+namespace Core.Tests.Interactors;
 
 public class UserInteractorTests
 {
-    private readonly Mock<UsersRepository> _usersRepositoryMock;
-    private readonly Mock<PasswordHasher> _passwordHasherMock;
-    private readonly UserInteractor _userInteractor;
+    private readonly Mock<PasswordHasher> passwordHasherMock;
+    private readonly UserInteractor userInteractor;
+    private readonly Mock<UsersRepository> usersRepositoryMock;
 
     public UserInteractorTests()
     {
-        _usersRepositoryMock = new Mock<UsersRepository>();
-        _passwordHasherMock = new Mock<PasswordHasher>();
+        usersRepositoryMock = new Mock<UsersRepository>();
+        passwordHasherMock = new Mock<PasswordHasher>();
 
-        _userInteractor = new UserInteractor(_usersRepositoryMock.Object, _passwordHasherMock.Object);
+        userInteractor = new UserInteractor(usersRepositoryMock.Object, passwordHasherMock.Object);
     }
 
     [Fact]
     public async Task Create_WhenUserWithGivenEmailAlreadyExists_ShouldFailAndNotPersist()
     {
         var testEmail = "mail";
-        _usersRepositoryMock.Setup(repo => repo.FindByEmail(testEmail))
-            .ReturnsAsync(new User
-            {
-                Email = testEmail,
-                UserName = "",
-                Password = ""
-            });
+        usersRepositoryMock
+            .Setup(repo => repo.FindByEmail(testEmail))
+            .ReturnsAsync(
+                new User
+                {
+                    Email = testEmail,
+                    UserName = "userName",
+                    Password = "password",
+                }
+            );
 
-        var actual = await _userInteractor.Create("", testEmail, "");
+        var actual = await userInteractor.Create("userName", testEmail, "password");
 
         Assert.True(actual.IsFailure);
         Assert.IsType<AlreadyExists<User>>(actual.Exception);
 
-        _usersRepositoryMock.Verify(repo => repo.Create(It.IsAny<User>()), Times.Never);
+        usersRepositoryMock.Verify(repo => repo.Create(It.IsAny<User>()), Times.Never);
     }
 
     [Fact]
@@ -48,30 +51,29 @@ public class UserInteractorTests
         var password = "password";
         var passwordHash = "passwordhash";
 
-        User capturedUser = null;
+        User? capturedUser = null;
 
-        _usersRepositoryMock.Setup(repo => repo.FindByEmail(email))
-            .ReturnsAsync(null as User);
+        usersRepositoryMock.Setup(repo => repo.FindByEmail(email)).ReturnsAsync(null as User);
 
-        _usersRepositoryMock
+        usersRepositoryMock
             .Setup(repo => repo.Create(It.IsAny<User>()))
             .Callback<User>(user => capturedUser = user);
 
-        _passwordHasherMock.Setup(hasher => hasher.HashPassword(password)).Returns(passwordHash);
+        passwordHasherMock.Setup(hasher => hasher.HashPassword(password)).Returns(passwordHash);
 
-        var actual = await _userInteractor.Create(userName, email, password);
+        var actual = await userInteractor.Create(userName, email, password);
 
         var expected = new User
         {
             UserName = userName,
             Email = email,
-            Password = passwordHash
+            Password = passwordHash,
         };
 
         Assert.True(actual.IsSuccess);
         Assert.Equivalent(expected, capturedUser);
 
-        _usersRepositoryMock.Verify(repo => repo.Flush(), Times.AtLeastOnce);
+        usersRepositoryMock.Verify(repo => repo.Flush(), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -79,9 +81,9 @@ public class UserInteractorTests
     {
         var id = Guid.NewGuid();
 
-        _usersRepositoryMock.Setup(repo => repo.FindById(id)).ReturnsAsync(null as User);
+        usersRepositoryMock.Setup(repo => repo.FindById(id)).ReturnsAsync(null as User);
 
-        var actual = await _userInteractor.Get(id);
+        var actual = await userInteractor.Get(id);
 
         Assert.True(actual.IsFailure);
         Assert.IsType<NoSuch<User>>(actual.Exception);
@@ -96,11 +98,11 @@ public class UserInteractorTests
             Id = id,
             UserName = "userName",
             Email = "email",
-            Password = "password"
+            Password = "password",
         };
-        _usersRepositoryMock.Setup(repo => repo.FindById(id)).ReturnsAsync(user);
+        usersRepositoryMock.Setup(repo => repo.FindById(id)).ReturnsAsync(user);
 
-        var actual = await _userInteractor.Get(id);
+        var actual = await userInteractor.Get(id);
 
         Assert.True(actual.IsSuccess);
         Assert.Equivalent(user, actual.Value);

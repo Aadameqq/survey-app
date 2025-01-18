@@ -31,13 +31,13 @@ dotnet ef database update --project ./src/Infrastructure --startup-project ./src
 ```
 
 ### Linting
-Format
 
-```bash
-dotnet format
-```
-
-Check
+Check code style
 ```bash
 dotnet format --verify-no-changes
+```
+
+Check formatting
+```bash
+dotnet csharpier . --check
 ```

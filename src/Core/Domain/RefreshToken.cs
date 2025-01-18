@@ -2,36 +2,37 @@ namespace Core.Domain;
 
 public class RefreshToken
 {
-    public Guid Id { get; } = Guid.NewGuid();
-    public string Token { get; private init; }
-    public AuthSession Session { get; private init; }
-    private bool _revoked;
-    private DateTime _expiresAt;
-
-    private RefreshToken()
-    {
-    }
+    private DateTime expiresAt;
+    private bool revoked;
 
     public RefreshToken(AuthSession authSession, DateTime expiresAt, string token)
     {
         Session = authSession;
-        _expiresAt = expiresAt;
+        this.expiresAt = expiresAt;
         Token = token;
     }
 
+    private RefreshToken() { }
+
+    public Guid Id { get; } = Guid.NewGuid();
+
+    public string Token { get; private init; }
+
+    public AuthSession Session { get; private init; }
+
     public void Revoke()
     {
-        _revoked = true;
+        revoked = true;
     }
 
     public bool IsRevoked()
     {
-        return _revoked;
+        return revoked;
     }
 
     public bool HasExpired()
     {
-        return DateTime.UtcNow > _expiresAt;
+        return DateTime.UtcNow > expiresAt;
     }
 
     public bool IsInvalid()

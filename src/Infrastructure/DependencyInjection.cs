@@ -6,7 +6,9 @@ namespace Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection ConfigureInfrastructureDependencies(this IServiceCollection services)
+    public static IServiceCollection ConfigureInfrastructureDependencies(
+        this IServiceCollection services
+    )
     {
         services.AddDbContext<DatabaseContext>();
         services.AddScoped<PasswordHasher, BCryptPasswordService>();

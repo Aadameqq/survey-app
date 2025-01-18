@@ -11,7 +11,8 @@ public class AuthInteractor(
     RefreshTokensFactory refreshTokensFactory,
     RefreshTokensRepository refreshTokensRepository,
     AuthSessionsRepository authSessionsRepository,
-    AccessTokenService accessTokenService)
+    AccessTokenService accessTokenService
+)
 {
     public async Task<Result<TokenPairOutput>> LogIn(string email, string password)
     {

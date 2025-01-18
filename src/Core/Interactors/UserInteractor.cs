@@ -4,32 +4,35 @@ using Core.Ports;
 
 namespace Core.Interactors;
 
-public class UserInteractor(UsersRepository _usersRepository, PasswordHasher _passwordHasher)
+public class UserInteractor(UsersRepository usersRepository, PasswordHasher passwordHasher)
 {
     public async Task<Result> Create(string userName, string email, string plainPassword)
     {
-        var found = await _usersRepository.FindByEmail(email);
+        var found = await usersRepository.FindByEmail(email);
 
-        if (found != null) return new AlreadyExists<User>();
+        if (found != null)
+        {
+            return new AlreadyExists<User>();
+        }
 
-        var hashedPassword = _passwordHasher.HashPassword(plainPassword);
+        var hashedPassword = passwordHasher.HashPassword(plainPassword);
 
         var user = new User
         {
             Email = email,
             UserName = userName,
-            Password = hashedPassword
+            Password = hashedPassword,
         };
 
-        await _usersRepository.Create(user);
-        await _usersRepository.Flush();
+        await usersRepository.Create(user);
+        await usersRepository.Flush();
 
         return Result.Success();
     }
 
     public async Task<Result<User>> Get(Guid id)
     {
-        var found = await _usersRepository.FindById(id);
+        var found = await usersRepository.FindById(id);
         if (found is null)
         {
             return new NoSuch<User>();

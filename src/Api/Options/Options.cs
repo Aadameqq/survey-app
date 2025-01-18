@@ -11,9 +11,11 @@ public static class Options
         return services;
     }
 
-    private static void AddOptions<T>(IServiceCollection services, string sectionName) where T : class
+    private static void AddOptions<T>(IServiceCollection services, string sectionName)
+        where T : class
     {
-        services.AddOptions<T>()
+        services
+            .AddOptions<T>()
             .BindConfiguration(sectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();

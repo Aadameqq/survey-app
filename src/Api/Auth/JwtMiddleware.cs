@@ -6,9 +6,7 @@ public class JwtMiddleware(RequestDelegate next, AccessTokenInteractor tokenInte
 {
     public async Task InvokeAsync(HttpContext ctx)
     {
-        var attribute = ctx.GetEndpoint()?.Metadata
-            .OfType<RequireAuthAttribute>()
-            .FirstOrDefault();
+        var attribute = ctx.GetEndpoint()?.Metadata.OfType<RequireAuthAttribute>().FirstOrDefault();
 
         if (attribute is null)
         {
@@ -36,7 +34,10 @@ public class JwtMiddleware(RequestDelegate next, AccessTokenInteractor tokenInte
             return;
         }
 
-        ctx.Items["authorizedUser"] = new AuthorizedUser(result.Value.UserId, result.Value.SessionId);
+        ctx.Items["authorizedUser"] = new AuthorizedUser(
+            result.Value.UserId,
+            result.Value.SessionId
+        );
         await next(ctx);
     }
 }

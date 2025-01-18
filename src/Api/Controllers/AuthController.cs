@@ -3,18 +3,13 @@ using Api.Dtos;
 using Core.Domain;
 using Core.Exceptions;
 using Core.Interactors;
-using Core.Ports;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(
-    AuthInteractor authInteractor
-)
-    : ControllerBase
+public class AuthController(AuthInteractor authInteractor) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<TokenPairResponse>> LogIn([FromBody] LogInBody body)
@@ -27,7 +22,7 @@ public class AuthController(
             {
                 NoSuch<User> _ => Unauthorized(),
                 InvalidCredentials _ => Unauthorized(),
-                _ => throw result.Exception
+                _ => throw result.Exception,
             };
         }
 
@@ -49,7 +44,9 @@ public class AuthController(
     }
 
     [HttpPut]
-    public async Task<ActionResult<TokenPairResponse>> RefreshTokens([FromBody] RefreshTokensBody body)
+    public async Task<ActionResult<TokenPairResponse>> RefreshTokens(
+        [FromBody] RefreshTokensBody body
+    )
     {
         var result = await authInteractor.RefreshTokens(body.RefreshToken);
 
@@ -59,7 +56,7 @@ public class AuthController(
             {
                 NoSuch<RefreshToken> _ => Unauthorized(),
                 InvalidToken _ => Unauthorized(),
-                _ => throw result.Exception
+                _ => throw result.Exception,
             };
         }
 

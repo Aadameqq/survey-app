@@ -4,8 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence;
 
-public class EfRefreshTokensRepository(DatabaseContext ctx)
-    : RefreshTokensRepository
+public class EfRefreshTokensRepository(DatabaseContext ctx) : RefreshTokensRepository
 {
     public async Task Persist(RefreshToken token)
     {

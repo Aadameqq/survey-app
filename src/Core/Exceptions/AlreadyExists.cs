@@ -1,5 +1,3 @@
 namespace Core.Exceptions;
 
-public class AlreadyExists<TTarget> : DomainException
-{
-}
+public class AlreadyExists<TTarget> : DomainException { }
