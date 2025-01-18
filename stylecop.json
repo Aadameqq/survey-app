@@ -1,7 +1,5 @@
 {
     "settings": {
-        "namingRules": {
-            "allowInterfacePrefix": false
-        }
+       
     }
 }

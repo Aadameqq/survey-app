@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Api.Dtos;
+namespace Api.Controllers.Dtos;
 
 public record CreateUserBody(
     [Required] string UserName,
     [Required] string Email,
-    [Required] [MinLength(12)] string Password
+    [Required][MinLength(12)] string Password
 );

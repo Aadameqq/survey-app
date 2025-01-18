@@ -1,4 +1,5 @@
 using Api.Auth;
+using Api.Controllers.Dtos;
 using Api.Dtos;
 using Core.Domain;
 using Core.Exceptions;

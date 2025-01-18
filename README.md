@@ -34,7 +34,8 @@ dotnet ef database update --project ./src/Infrastructure --startup-project ./src
 
 Check code style
 ```bash
-dotnet format --verify-no-changes
+dotnet format style --verify-no-changes
+dotnet format analyzers --verify-no-changes
 ```
 
 Check formatting
