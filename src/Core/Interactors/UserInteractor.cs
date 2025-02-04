@@ -4,7 +4,13 @@ using Core.Ports;
 
 namespace Core.Interactors;
 
-public class UserInteractor(UsersRepository usersRepository, PasswordHasher passwordHasher)
+public class UserInteractor(
+    UsersRepository usersRepository,
+    PasswordHasher passwordHasher,
+    EmailSender emailSender,
+    ActivationEmailBodyGenerator emailBodyGenerator,
+    ActivationCodeRepository activationCodeRepository
+)
 {
     public async Task<Result> Create(string userName, string email, string plainPassword)
     {
@@ -27,6 +33,12 @@ public class UserInteractor(UsersRepository usersRepository, PasswordHasher pass
         await usersRepository.Create(user);
         await usersRepository.Flush();
 
+        var code = await activationCodeRepository.Create(user);
+
+        var content = emailBodyGenerator.Generate(user, code);
+
+        emailSender.Send(user.Email, "Account Activation", content);
+
         return Result.Success();
     }
 
@@ -39,5 +51,29 @@ public class UserInteractor(UsersRepository usersRepository, PasswordHasher pass
         }
 
         return found;
+    }
+
+    public async Task<Result> Activate(string code)
+    {
+        var userId = await activationCodeRepository.GetUserIdAndRevokeCode(code);
+
+        if (userId is null)
+        {
+            return new NoSuch();
+        }
+
+        var user = await usersRepository.FindById(userId.Value);
+
+        if (user is null)
+        {
+            return new NoSuch<User>();
+        }
+
+        user.Activate();
+
+        await usersRepository.Update(user);
+        await usersRepository.Flush();
+
+        return Result.Success();
     }
 }

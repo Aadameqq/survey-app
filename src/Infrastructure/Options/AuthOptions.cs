@@ -15,4 +15,7 @@ public class AuthOptions
 
     [Required]
     public required string Issuer { get; init; }
+
+    [Required]
+    public required int ActivationCodeLifeSpanInMinutes { get; init; }
 }

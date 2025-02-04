@@ -8,6 +8,8 @@ public static class Options
     {
         AddOptions<AuthOptions>(services, "Auth");
         AddOptions<DatabaseOptions>(services, "Database");
+        AddOptions<SmtpOptions>(services, "Smtp");
+        AddOptions<RedisOptions>(services, "Redis");
         return services;
     }
 

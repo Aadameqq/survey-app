@@ -48,4 +48,22 @@ public class UsersController(UserInteractor userInteractor) : ControllerBase
 
         return Ok(new { result.Value.Email });
     }
+
+    [HttpPost("activation/{code}")]
+    public async Task<IActionResult> VerifyEmail([FromRoute] string code)
+    {
+        var result = await userInteractor.Activate(code);
+
+        if (result.IsFailure)
+        {
+            return result.Exception switch
+            {
+                NoSuch<User> _ => NotFound(),
+                NoSuch _ => NotFound(),
+                _ => throw result.Exception,
+            };
+        }
+
+        return Ok();
+    }
 }

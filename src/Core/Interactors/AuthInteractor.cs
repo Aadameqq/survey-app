@@ -27,6 +27,11 @@ public class AuthInteractor(
             return new InvalidCredentials();
         }
 
+        if (!user.HasBeenActivated())
+        {
+            return new AccountNotActivated();
+        }
+
         var session = new AuthSession(user.Id);
         var tokenPair = await CreateTokenPair(session);
         await refreshTokensRepository.Flush();

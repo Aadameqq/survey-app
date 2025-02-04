@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20250204213248_add_user_is_verified_field")]
+    partial class add_user_is_verified_field
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,11 +52,11 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("expiredAt")
+                    b.Property<DateTime>("_expiredAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("ExpiredAt");
 
-                    b.Property<bool>("revoked")
+                    b.Property<bool>("_revoked")
                         .HasColumnType("boolean")
                         .HasColumnName("Revoked");
 
@@ -82,9 +85,9 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("activated")
+                    b.Property<bool>("isVerified")
                         .HasColumnType("boolean")
-                        .HasColumnName("Activated");
+                        .HasColumnName("IsVerified");
 
                     b.HasKey("Id");
 

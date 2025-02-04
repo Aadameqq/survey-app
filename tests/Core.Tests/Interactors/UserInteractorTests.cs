@@ -8,16 +8,22 @@ namespace Core.Tests.Interactors;
 
 public class UserInteractorTests
 {
-    private readonly Mock<PasswordHasher> passwordHasherMock;
+    private readonly Mock<ActivationCodeRepository> codeRepositoryMock = new();
+    private readonly Mock<ActivationEmailBodyGenerator> emailBodyGeneratorMock = new();
+    private readonly Mock<EmailSender> emailSenderMock = new();
+    private readonly Mock<PasswordHasher> passwordHasherMock = new();
     private readonly UserInteractor userInteractor;
-    private readonly Mock<UsersRepository> usersRepositoryMock;
+    private readonly Mock<UsersRepository> usersRepositoryMock = new();
 
     public UserInteractorTests()
     {
-        usersRepositoryMock = new Mock<UsersRepository>();
-        passwordHasherMock = new Mock<PasswordHasher>();
-
-        userInteractor = new UserInteractor(usersRepositoryMock.Object, passwordHasherMock.Object);
+        userInteractor = new UserInteractor(
+            usersRepositoryMock.Object,
+            passwordHasherMock.Object,
+            emailSenderMock.Object,
+            emailBodyGeneratorMock.Object,
+            codeRepositoryMock.Object
+        );
     }
 
     [Fact]

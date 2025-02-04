@@ -22,6 +22,9 @@ public class AuthController(AuthInteractor authInteractor) : ControllerBase
             {
                 NoSuch<User> _ => Unauthorized(),
                 InvalidCredentials _ => Unauthorized(),
+                AccountNotActivated _ => Unauthorized(
+                    new { message = "Account has not been activated yet" }
+                ),
                 _ => throw result.Exception,
             };
         }

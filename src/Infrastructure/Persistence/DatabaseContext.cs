@@ -21,8 +21,8 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
         modelBuilder.Entity<RefreshToken>(b =>
         {
             b.Property<Guid>("Id").ValueGeneratedOnAdd();
-            b.Property<bool>("_revoked").HasColumnName("Revoked");
-            b.Property<DateTime>("_expiredAt").HasColumnName("ExpiredAt");
+            b.Property<bool>("revoked").HasColumnName("Revoked");
+            b.Property<DateTime>("expiredAt").HasColumnName("ExpiredAt");
 
             b.HasOne(rt => rt.Session)
                 .WithMany()
@@ -34,6 +34,11 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
         {
             b.Property<Guid>("Id").ValueGeneratedOnAdd();
             b.Property<Guid>("UserId");
+        });
+
+        modelBuilder.Entity<User>(b =>
+        {
+            b.Property<bool>("activated").HasColumnName("Activated");
         });
     }
 }

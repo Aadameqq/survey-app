@@ -11,7 +11,7 @@ dotnet run --project ./src/Api/Api.csproj
 Run app in watch mode
 ```bash
 dotnet watch --project ./src/Api/Api.csproj
-```
+```public
 
 ### Database
 
@@ -28,6 +28,18 @@ dotnet ef migrations add MigrationName --project ./src/Infrastructure --startup-
 Apply migration
 ```bash
 dotnet ef database update --project ./src/Infrastructure --startup-project ./src/Api
+```
+
+### Other Services
+
+Redis
+```bash
+docker-compose up redis
+```
+
+Smtp mock
+```bash
+docker-compose up smtp
 ```
 
 ### Linting

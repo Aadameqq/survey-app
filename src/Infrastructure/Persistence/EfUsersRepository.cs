@@ -21,6 +21,12 @@ public class EfUsersRepository(DatabaseContext ctx) : UsersRepository
         await ctx.Users.AddAsync(user);
     }
 
+    public Task Update(User user)
+    {
+        ctx.Users.Update(user);
+        return Task.CompletedTask;
+    }
+
     public async Task Flush()
     {
         await ctx.SaveChangesAsync();
