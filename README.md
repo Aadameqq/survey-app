@@ -1,4 +1,4 @@
-# Survey app
+# Contest app
 
 ## Development
 
