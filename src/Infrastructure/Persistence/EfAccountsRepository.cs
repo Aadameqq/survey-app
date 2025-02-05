@@ -4,26 +4,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence;
 
-public class EfUsersRepository(DatabaseContext ctx) : UsersRepository
+public class EfAccountsRepository(DatabaseContext ctx) : AccountsRepository
 {
-    public Task<User?> FindByEmail(string email)
+    public Task<Account?> FindByEmail(string email)
     {
         return ctx.Users.FirstOrDefaultAsync(u => u.Email == email);
     }
 
-    public Task<User?> FindById(Guid id)
+    public Task<Account?> FindById(Guid id)
     {
         return ctx.Users.FirstOrDefaultAsync(u => u.Id == id);
     }
 
-    public async Task Create(User user)
+    public async Task Create(Account account)
     {
-        await ctx.Users.AddAsync(user);
+        await ctx.Users.AddAsync(account);
     }
 
-    public Task Update(User user)
+    public Task Update(Account account)
     {
-        ctx.Users.Update(user);
+        ctx.Users.Update(account);
         return Task.CompletedTask;
     }
 

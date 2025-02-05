@@ -4,5 +4,5 @@ namespace Core.Ports;
 
 public interface ActivationEmailBodyGenerator
 {
-    public string Generate(User user, string code);
+    public string Generate(Account account, string code);
 }

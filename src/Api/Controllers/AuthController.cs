@@ -20,7 +20,7 @@ public class AuthController(AuthInteractor authInteractor) : ControllerBase
         {
             return result.Exception switch
             {
-                NoSuch<User> _ => Unauthorized(),
+                NoSuch<Account> _ => Unauthorized(),
                 InvalidCredentials _ => Unauthorized(),
                 AccountNotActivated _ => Unauthorized(
                     new { message = "Account has not been activated yet" }

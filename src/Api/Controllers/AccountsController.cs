@@ -10,16 +10,16 @@ namespace Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class UsersController(UserInteractor userInteractor) : ControllerBase
+public class AccountsController(AccountInteractor accountInteractor) : ControllerBase
 {
     [HttpPost("")]
-    public async Task<IActionResult> Create([FromBody] CreateUserBody body)
+    public async Task<IActionResult> Create([FromBody] CreateAccountBody body)
     {
-        var result = await userInteractor.Create(body.UserName, body.Email, body.Password);
+        var result = await accountInteractor.Create(body.UserName, body.Email, body.Password);
 
         if (result.IsFailure)
         {
-            if (result.Exception is AlreadyExists<User>)
+            if (result.Exception is AlreadyExists<Account>)
             {
                 return Conflict();
             }
@@ -34,11 +34,11 @@ public class UsersController(UserInteractor userInteractor) : ControllerBase
         AuthorizedUser user
     )
     {
-        var result = await userInteractor.Get(user.UserId);
+        var result = await accountInteractor.Get(user.UserId);
 
         if (result.IsFailure)
         {
-            if (result.Exception is NoSuch<User>)
+            if (result.Exception is NoSuch<Account>)
             {
                 throw new InvalidOperationException(
                     "The operation could not proceed because the user is logged in but does not exist in the database. This might indicate a corrupted session or data inconsistency."
@@ -52,13 +52,13 @@ public class UsersController(UserInteractor userInteractor) : ControllerBase
     [HttpPost("activation/{code}")]
     public async Task<IActionResult> VerifyEmail([FromRoute] string code)
     {
-        var result = await userInteractor.Activate(code);
+        var result = await accountInteractor.Activate(code);
 
         if (result.IsFailure)
         {
             return result.Exception switch
             {
-                NoSuch<User> _ => NotFound(),
+                NoSuch<Account> _ => NotFound(),
                 NoSuch _ => NotFound(),
                 _ => throw result.Exception,
             };

@@ -7,7 +7,7 @@ namespace Infrastructure.Persistence;
 
 public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbContext
 {
-    public DbSet<User> Users { get; set; }
+    public DbSet<Account> Users { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<AuthSession> AuthSessions { get; set; }
 
@@ -36,7 +36,7 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
             b.Property<Guid>("UserId");
         });
 
-        modelBuilder.Entity<User>(b =>
+        modelBuilder.Entity<Account>(b =>
         {
             b.Property<bool>("activated").HasColumnName("Activated");
         });

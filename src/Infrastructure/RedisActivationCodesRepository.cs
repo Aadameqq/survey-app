@@ -7,19 +7,19 @@ using StackExchange.Redis;
 
 namespace Infrastructure;
 
-public class RedisActivationCodeRepository(
+public class RedisActivationCodesRepository(
     IConnectionMultiplexer redis,
     IOptions<AuthOptions> authOptions
-) : ActivationCodeRepository
+) : ActivationCodesRepository
 {
-    public async Task<string> Create(User user)
+    public async Task<string> Create(Account account)
     {
         var code = GenerateCode();
 
         var db = redis.GetDatabase();
         await db.StringSetAsync(
             code,
-            user.Id.ToString(),
+            account.Id.ToString(),
             TimeSpan.FromMinutes(authOptions.Value.ActivationCodeLifeSpanInMinutes)
         );
 

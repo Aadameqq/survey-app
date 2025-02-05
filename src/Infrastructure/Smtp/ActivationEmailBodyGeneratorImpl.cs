@@ -8,7 +8,7 @@ namespace Infrastructure.smtp;
 public class ActivationEmailBodyGeneratorImpl(IOptions<SmtpOptions> smtpOptions)
     : ActivationEmailBodyGenerator
 {
-    public string Generate(User user, string verificationCode)
+    public string Generate(Account account, string verificationCode)
     {
         var html = File.ReadAllText(
             Path.Combine(
@@ -19,7 +19,7 @@ public class ActivationEmailBodyGeneratorImpl(IOptions<SmtpOptions> smtpOptions)
             )
         );
 
-        html = html.Replace("{userName}", user.UserName);
+        html = html.Replace("{userName}", account.UserName);
         html = html.Replace("{code}", verificationCode);
 
         return html;

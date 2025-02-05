@@ -6,7 +6,7 @@ using Core.Ports;
 namespace Core.Interactors;
 
 public class AuthInteractor(
-    UsersRepository usersRepository,
+    AccountsRepository accountsRepository,
     PasswordVerifier passwordVerifier,
     RefreshTokensFactory refreshTokensFactory,
     RefreshTokensRepository refreshTokensRepository,
@@ -16,10 +16,10 @@ public class AuthInteractor(
 {
     public async Task<Result<TokenPairOutput>> LogIn(string email, string password)
     {
-        var user = await usersRepository.FindByEmail(email);
+        var user = await accountsRepository.FindByEmail(email);
         if (user is null)
         {
-            return new NoSuch<User>();
+            return new NoSuch<Account>();
         }
 
         if (!passwordVerifier.Verify(password, user.Password))

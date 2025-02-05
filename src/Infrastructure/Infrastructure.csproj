@@ -5,7 +5,7 @@
 
     </ItemGroup>
     <ItemGroup>
-        <None Update="Smtp\templates\email-verification.html">
+        <None Update="Smtp\templates\account-activation.html">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>

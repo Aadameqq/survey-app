@@ -4,36 +4,36 @@ using Core.Ports;
 
 namespace Core.Interactors;
 
-public class UserInteractor(
-    UsersRepository usersRepository,
+public class AccountInteractor(
+    AccountsRepository accountsRepository,
     PasswordHasher passwordHasher,
     EmailSender emailSender,
     ActivationEmailBodyGenerator emailBodyGenerator,
-    ActivationCodeRepository activationCodeRepository
+    ActivationCodesRepository activationCodesRepository
 )
 {
     public async Task<Result> Create(string userName, string email, string plainPassword)
     {
-        var found = await usersRepository.FindByEmail(email);
+        var found = await accountsRepository.FindByEmail(email);
 
         if (found != null)
         {
-            return new AlreadyExists<User>();
+            return new AlreadyExists<Account>();
         }
 
         var hashedPassword = passwordHasher.HashPassword(plainPassword);
 
-        var user = new User
+        var user = new Account
         {
             Email = email,
             UserName = userName,
             Password = hashedPassword,
         };
 
-        await usersRepository.Create(user);
-        await usersRepository.Flush();
+        await accountsRepository.Create(user);
+        await accountsRepository.Flush();
 
-        var code = await activationCodeRepository.Create(user);
+        var code = await activationCodesRepository.Create(user);
 
         var content = emailBodyGenerator.Generate(user, code);
 
@@ -42,12 +42,12 @@ public class UserInteractor(
         return Result.Success();
     }
 
-    public async Task<Result<User>> Get(Guid id)
+    public async Task<Result<Account>> Get(Guid id)
     {
-        var found = await usersRepository.FindById(id);
+        var found = await accountsRepository.FindById(id);
         if (found is null)
         {
-            return new NoSuch<User>();
+            return new NoSuch<Account>();
         }
 
         return found;
@@ -55,24 +55,24 @@ public class UserInteractor(
 
     public async Task<Result> Activate(string code)
     {
-        var userId = await activationCodeRepository.GetUserIdAndRevokeCode(code);
+        var userId = await activationCodesRepository.GetUserIdAndRevokeCode(code);
 
         if (userId is null)
         {
             return new NoSuch();
         }
 
-        var user = await usersRepository.FindById(userId.Value);
+        var user = await accountsRepository.FindById(userId.Value);
 
         if (user is null)
         {
-            return new NoSuch<User>();
+            return new NoSuch<Account>();
         }
 
         user.Activate();
 
-        await usersRepository.Update(user);
-        await usersRepository.Flush();
+        await accountsRepository.Update(user);
+        await accountsRepository.Flush();
 
         return Result.Success();
     }

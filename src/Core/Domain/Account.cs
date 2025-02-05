@@ -1,6 +1,6 @@
 namespace Core.Domain;
 
-public class User
+public class Account
 {
     private bool activated;
     public Guid Id { get; init; }

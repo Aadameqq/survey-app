@@ -15,7 +15,7 @@ public class AuthInteractorTests
     private readonly Mock<PasswordVerifier> passwordVerifierMock = new();
     private readonly Mock<RefreshTokensFactory> refreshTokensFactoryMock = new();
     private readonly Mock<RefreshTokensRepository> refreshTokensRepositoryMock = new();
-    private readonly Mock<UsersRepository> usersRepositoryMock = new();
+    private readonly Mock<AccountsRepository> usersRepositoryMock = new();
 
     public AuthInteractorTests()
     {
@@ -34,12 +34,12 @@ public class AuthInteractorTests
     {
         var email = "test@test.com";
 
-        usersRepositoryMock.Setup(repo => repo.FindByEmail(email)).ReturnsAsync(null as User);
+        usersRepositoryMock.Setup(repo => repo.FindByEmail(email)).ReturnsAsync(null as Account);
 
         var result = await ExecuteLogIn(email);
 
         Assert.True(result.IsFailure);
-        Assert.IsType<NoSuch<User>>(result.Exception);
+        Assert.IsType<NoSuch<Account>>(result.Exception);
         refreshTokensRepositoryMock.Verify(repo => repo.Flush(), Times.Never);
     }
 
@@ -109,13 +109,13 @@ public class AuthInteractorTests
         return authInteractor.LogIn(email, password);
     }
 
-    private User CreateTestUser(
+    private Account CreateTestUser(
         string email = "defaultEmail",
         string userName = "defaultUserName",
         string password = "defaultPassword"
     )
     {
-        return new User
+        return new Account
         {
             UserName = userName,
             Email = email,
