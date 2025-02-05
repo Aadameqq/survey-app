@@ -49,21 +49,9 @@ public class AccountsController(AccountInteractor accountInteractor) : Controlle
         return Ok(new { result.Value.Email });
     }
 
-    [HttpPost("activation/{code}")]
-    public async Task<IActionResult> VerifyEmail([FromRoute] string code)
+    [HttpDelete("password")]
+    public async Task<IActionResult> ResetPassword()
     {
-        var result = await accountInteractor.Activate(code);
-
-        if (result.IsFailure)
-        {
-            return result.Exception switch
-            {
-                NoSuch<Account> _ => NotFound(),
-                NoSuch _ => NotFound(),
-                _ => throw result.Exception,
-            };
-        }
-
-        return Ok();
+        throw new NotImplementedException();
     }
 }

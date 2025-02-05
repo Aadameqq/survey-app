@@ -10,6 +10,7 @@ public static class Options
         AddOptions<DatabaseOptions>(services, "Database");
         AddOptions<SmtpOptions>(services, "Smtp");
         AddOptions<RedisOptions>(services, "Redis");
+        AddOptions<AccountOptions>(services, "Account");
         return services;
     }
 

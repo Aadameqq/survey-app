@@ -9,9 +9,8 @@ namespace Core.Tests.Interactors;
 public class AccountInteractorTests
 {
     private readonly AccountInteractor accountInteractor;
+    private readonly Mock<ActivationCodeEmailSender> codeEmailSenderMock = new();
     private readonly Mock<ActivationCodesRepository> codeRepositoryMock = new();
-    private readonly Mock<ActivationCodeEmailSender> emailBodyGeneratorMock = new();
-    private readonly Mock<EmailSender> emailSenderMock = new();
     private readonly Mock<PasswordHasher> passwordHasherMock = new();
     private readonly Mock<AccountsRepository> usersRepositoryMock = new();
 
@@ -20,14 +19,13 @@ public class AccountInteractorTests
         accountInteractor = new AccountInteractor(
             usersRepositoryMock.Object,
             passwordHasherMock.Object,
-            emailSenderMock.Object,
-            emailBodyGeneratorMock.Object,
+            codeEmailSenderMock.Object,
             codeRepositoryMock.Object
         );
     }
 
     [Fact]
-    public async Task Create_WhenUserWithGivenEmailAlreadyExists_ShouldFailAndNotPersist()
+    public async Task Create_WhenUserWithGivenEmailAlreadyExists_ShouldFailAndNotFlush()
     {
         var testEmail = "mail";
         usersRepositoryMock
@@ -46,7 +44,7 @@ public class AccountInteractorTests
         Assert.True(actual.IsFailure);
         Assert.IsType<AlreadyExists<Account>>(actual.Exception);
 
-        usersRepositoryMock.Verify(repo => repo.Create(It.IsAny<Account>()), Times.Never);
+        usersRepositoryMock.Verify(repo => repo.Flush(), Times.Never);
     }
 
     [Fact]
