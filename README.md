@@ -13,12 +13,14 @@ Run app in watch mode
 dotnet watch --project ./src/Api/Api.csproj
 ```
 
-### Database
+### Other Services
 
-Run database (you can also set up it locally if you wish)
+Run all services (db, redis, smtp, etc.)
 ```bash
-docker-compose up database
+docker-compose up
 ```
+
+### Database
 
 Create migration
 ```bash
@@ -28,18 +30,6 @@ dotnet ef migrations add MigrationName --project ./src/Infrastructure --startup-
 Apply migration
 ```bash
 dotnet ef database update --project ./src/Infrastructure --startup-project ./src/Api
-```
-
-### Other Services
-
-Redis
-```bash
-docker-compose up redis
-```
-
-Smtp mock
-```bash
-docker-compose up smtp
 ```
 
 ### Linting
