@@ -3,10 +3,18 @@ namespace Core.Domain;
 public class Account
 {
     private bool activated;
+
+    public Account(string userName, string email, string password)
+    {
+        UserName = userName;
+        Email = email;
+        Password = password;
+    }
+
     public Guid Id { get; init; }
-    public required string UserName { get; init; }
-    public required string Email { get; init; }
-    public required string Password { get; init; }
+    public string UserName { get; private set; }
+    public string Email { get; private set; }
+    public string Password { get; private set; }
 
     public bool HasBeenActivated()
     {
@@ -16,5 +24,10 @@ public class Account
     public void Activate()
     {
         activated = true;
+    }
+
+    public void ChangePassword(string newPasswordHash)
+    {
+        Password = newPasswordHash;
     }
 }

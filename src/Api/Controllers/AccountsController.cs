@@ -12,7 +12,10 @@ namespace Api.Controllers;
 [ApiController]
 public class AccountsController(
     CreateAccountUseCase createAccountUseCase,
-    GetCurrentAccountUseCase getCurrentAccountUseCase
+    GetCurrentAccountUseCase getCurrentAccountUseCase,
+    InitializePasswordResetUseCase initializePasswordResetUseCase,
+    ActivateAccountUseCase activateAccountUseCase,
+    ResetPasswordUseCase resetPasswordUseCase
 ) : ControllerBase
 {
     [HttpPost("")]
@@ -53,8 +56,51 @@ public class AccountsController(
     }
 
     [HttpDelete("password")]
-    public async Task<IActionResult> ResetPassword()
+    public async Task<IActionResult> InitializeResetPassword(
+        [FromBody] InitializeResetPasswordBody body
+    )
     {
-        throw new NotImplementedException();
+        var result = await initializePasswordResetUseCase.Execute(body.Email);
+
+        if (result is { IsFailure: true, Exception: NoSuch<Account> })
+        {
+            return NotFound();
+        }
+
+        return Ok(new { message = "Password reset email sent." });
+    }
+
+    [HttpGet("activation/{code}")]
+    public async Task<IActionResult> Activate([FromRoute] string code)
+    {
+        var result = await activateAccountUseCase.Execute(code);
+
+        if (result.IsFailure)
+        {
+            return result.Exception switch
+            {
+                NoSuch<Account> _ => NotFound(),
+                NoSuch _ => NotFound(),
+                _ => throw result.Exception,
+            };
+        }
+
+        return Ok("Account Activated");
+    }
+
+    [HttpDelete("password/{code}")]
+    public async Task<IActionResult> ResetPassword(
+        [FromRoute] string code,
+        [FromBody] ResetPasswordBody body
+    )
+    {
+        var result = await resetPasswordUseCase.Execute(code, body.NewPassword);
+
+        if (result is { IsFailure: true, Exception: NoSuch })
+        {
+            return NotFound();
+        }
+
+        return Ok();
     }
 }

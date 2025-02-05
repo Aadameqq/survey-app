@@ -29,6 +29,8 @@ public static class DependencyInjection
         services.AddScoped<ActivationCodeEmailSender, ActivationCodeEmailSenderImpl>();
         services.AddScoped<EmailSender, SystemEmailSender>();
         services.AddScoped<ActivationCodesRepository, RedisActivationCodesRepository>();
+        services.AddScoped<PasswordResetCodesRepository, RedisPasswordResetCodesRepository>();
+        services.AddScoped<PasswordResetEmailSender, PasswordResetEmailSenderImpl>();
         services.AddSingleton<AccessTokenService, AspAccessTokenService>();
         services.AddSingleton<DateTimeProvider, SystemDateTimeProvider>();
         return services;

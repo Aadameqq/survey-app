@@ -1,14 +1,9 @@
 using Core.Domain;
 using Core.Ports;
-using Infrastructure.Options;
-using Microsoft.Extensions.Options;
 
 namespace Infrastructure.smtp;
 
-public class ActivationCodeEmailSenderImpl(
-    EmailSender emailSender,
-    IOptions<AccountOptions> accountOptions
-) : ActivationCodeEmailSender
+public class ActivationCodeEmailSenderImpl(EmailSender emailSender) : ActivationCodeEmailSender
 {
     public Task Send(Account account, string activationCode)
     {
@@ -31,7 +26,7 @@ public class ActivationCodeEmailSenderImpl(
         );
 
         html = html.Replace("{userName}", account.UserName);
-        html = html.Replace("{link}", $"{accountOptions.Value.ActivationUrl}/{activationCode}");
+        html = html.Replace("{code}", activationCode);
 
         return html;
     }

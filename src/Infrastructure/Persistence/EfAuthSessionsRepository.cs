@@ -28,6 +28,11 @@ public class EfAuthSessionsRepository(DatabaseContext ctx) : AuthSessionsReposit
         return ctx.AuthSessions.FirstOrDefaultAsync(s => s.Id == sessionId);
     }
 
+    public async Task RemoveAllByAccountAndFlush(Account account)
+    {
+        await ctx.AuthSessions.Where(session => session.UserId == account.Id).ExecuteDeleteAsync();
+    }
+
     public Task<AuthSession?> FindByToken(string token)
     {
         return ctx.AuthSessions.FirstOrDefaultAsync(s => s.CurrentToken == token);

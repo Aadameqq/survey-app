@@ -7,20 +7,22 @@ using StackExchange.Redis;
 
 namespace Infrastructure;
 
-public class RedisActivationCodesRepository(
+public class RedisPasswordResetCodesRepository(
     IConnectionMultiplexer redis,
     IOptions<AccountOptions> accountOptions
-) : ActivationCodesRepository
+) : PasswordResetCodesRepository
 {
+    private const string Prefix = "PasswordResetCodes";
+
     public async Task<string> Create(Account account)
     {
         var code = GenerateCode();
 
         var db = redis.GetDatabase();
         await db.StringSetAsync(
-            code,
+            $"{Prefix}{code}",
             account.Id.ToString(),
-            TimeSpan.FromMinutes(accountOptions.Value.ActivationCodeLifeSpanInMinutes)
+            TimeSpan.FromMinutes(accountOptions.Value.PasswordResetCodeLifeSpanInMinutes)
         );
 
         return code;
@@ -29,14 +31,14 @@ public class RedisActivationCodesRepository(
     public async Task<Guid?> GetUserIdAndRevokeCode(string code)
     {
         var db = redis.GetDatabase();
-        var userId = await db.StringGetAsync(code);
+        var userId = await db.StringGetAsync($"{Prefix}{code}");
 
         if (userId.IsNullOrEmpty)
         {
             return null;
         }
 
-        await db.KeyDeleteAsync(code);
+        await db.KeyDeleteAsync($"{Prefix}{code}");
 
         return Guid.Parse(userId.ToString());
     }

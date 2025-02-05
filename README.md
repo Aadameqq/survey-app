@@ -11,7 +11,7 @@ dotnet run --project ./src/Api/Api.csproj
 Run app in watch mode
 ```bash
 dotnet watch --project ./src/Api/Api.csproj
-```public
+```
 
 ### Database
 

@@ -9,6 +9,7 @@ public interface AuthSessionsRepository
     Task Update(AuthSession session);
 
     Task<AuthSession?> FindById(Guid sessionId);
+    Task RemoveAllByAccountAndFlush(Account account);
     Task<AuthSession?> FindByToken(string token);
     Task<AuthSession?> FindByArchivedToken(string token);
     Task ArchiveToken(ArchivedToken token);

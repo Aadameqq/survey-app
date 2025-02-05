@@ -5,8 +5,8 @@ namespace Infrastructure.Options;
 public class AccountOptions
 {
     [Required]
-    public required string ActivationUrl { get; init; }
+    public required int ActivationCodeLifeSpanInMinutes { get; init; }
 
     [Required]
-    public required string PasswordResetUrl { get; init; }
+    public required int PasswordResetCodeLifeSpanInMinutes { get; init; }
 }

@@ -22,12 +22,7 @@ public class CreateAccountUseCase(
 
         var hashedPassword = passwordHasher.HashPassword(plainPassword);
 
-        var account = new Account
-        {
-            Email = email,
-            UserName = userName,
-            Password = hashedPassword,
-        };
+        var account = new Account(userName, email, hashedPassword);
 
         await accountsRepository.Create(account);
         await accountsRepository.Flush();

@@ -9,11 +9,13 @@ public static class DependencyInjection
     {
         services.AddScoped<ActivateAccountUseCase>();
         services.AddScoped<CreateAccountUseCase>();
-        services.AddScoped<GetAccountFromTokenUseCase>();
+        services.AddSingleton<GetAccountFromTokenUseCase>();
         services.AddScoped<GetCurrentAccountUseCase>();
         services.AddScoped<LogInUseCase>();
         services.AddScoped<LogOutUseCase>();
         services.AddScoped<RefreshTokensUseCase>();
+        services.AddScoped<InitializePasswordResetUseCase>();
+        services.AddScoped<ResetPasswordUseCase>();
         return services;
     }
 }
