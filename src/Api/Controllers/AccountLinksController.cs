@@ -1,18 +1,18 @@
 using Core.Domain;
 using Core.Exceptions;
-using Core.Interactors;
+using Core.UseCases;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
 [Route("account")]
 [Controller]
-public class AccountLinksController(AccountInteractor accountInteractor) : ControllerBase
+public class AccountLinksController(ActivateAccountUseCase activateAccountUseCase) : ControllerBase
 {
     [HttpGet("account-activation/{code}")]
     public async Task<IActionResult> VerifyEmail([FromRoute] string code)
     {
-        var result = await accountInteractor.Activate(code);
+        var result = await activateAccountUseCase.Execute(code);
 
         if (result.IsFailure)
         {

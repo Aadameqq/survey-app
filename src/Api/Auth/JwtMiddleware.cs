@@ -1,8 +1,8 @@
-using Core.Interactors;
+using Core.UseCases;
 
 namespace Api.Auth;
 
-public class JwtMiddleware(RequestDelegate next, AccessTokenInteractor tokenInteractor)
+public class JwtMiddleware(RequestDelegate next, GetAccountFromTokenUseCase tokenUseCase)
 {
     public async Task InvokeAsync(HttpContext ctx)
     {
@@ -26,7 +26,7 @@ public class JwtMiddleware(RequestDelegate next, AccessTokenInteractor tokenInte
 
         var token = headerContent[tokenType.Length..];
 
-        var result = await tokenInteractor.GetAccessTokenPayload(token);
+        var result = await tokenUseCase.Execute(token);
 
         if (result.IsFailure)
         {

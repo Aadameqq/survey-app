@@ -3,11 +3,11 @@ using Core.Dtos;
 using Core.Exceptions;
 using Core.Ports;
 
-namespace Core.Interactors;
+namespace Core.UseCases;
 
-public class AccessTokenInteractor(AccessTokenService accessTokenService)
+public class GetAccountFromTokenUseCase(AccessTokenService accessTokenService)
 {
-    public async Task<Result<AccessTokenPayload>> GetAccessTokenPayload(string accessToken)
+    public async Task<Result<AccessTokenPayload>> Execute(string accessToken)
     {
         var payload = await accessTokenService.FetchPayloadIfValid(accessToken);
 

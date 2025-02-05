@@ -3,19 +3,22 @@ using Api.Controllers.Dtos;
 using Api.Dtos;
 using Core.Domain;
 using Core.Exceptions;
-using Core.Interactors;
+using Core.UseCases;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AccountsController(AccountInteractor accountInteractor) : ControllerBase
+public class AccountsController(
+    CreateAccountUseCase createAccountUseCase,
+    GetCurrentAccountUseCase getCurrentAccountUseCase
+) : ControllerBase
 {
     [HttpPost("")]
     public async Task<IActionResult> Create([FromBody] CreateAccountBody body)
     {
-        var result = await accountInteractor.Create(body.UserName, body.Email, body.Password);
+        var result = await createAccountUseCase.Execute(body.UserName, body.Email, body.Password);
 
         if (result.IsFailure)
         {
@@ -34,7 +37,7 @@ public class AccountsController(AccountInteractor accountInteractor) : Controlle
         AuthorizedUser user
     )
     {
-        var result = await accountInteractor.Get(user.UserId);
+        var result = await getCurrentAccountUseCase.Execute(user.UserId);
 
         if (result.IsFailure)
         {

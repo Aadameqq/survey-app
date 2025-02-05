@@ -2,19 +2,23 @@ using Api.Auth;
 using Api.Dtos;
 using Core.Domain;
 using Core.Exceptions;
-using Core.Interactors;
+using Core.UseCases;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(AuthInteractor authInteractor) : ControllerBase
+public class AuthController(
+    LogInUseCase logInUseCase,
+    LogOutUseCase logOutUseCase,
+    RefreshTokensUseCase refreshTokensUseCase
+) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<TokenPairResponse>> LogIn([FromBody] LogInBody body)
     {
-        var result = await authInteractor.LogIn(body.Email, body.Password);
+        var result = await logInUseCase.Execute(body.Email, body.Password);
 
         if (result.IsFailure)
         {
@@ -36,7 +40,7 @@ public class AuthController(AuthInteractor authInteractor) : ControllerBase
     [RequireAuth]
     public async Task<IActionResult> LogOut(AuthorizedUser authUser)
     {
-        var result = await authInteractor.LogOut(authUser.SessionId);
+        var result = await logOutUseCase.Execute(authUser.SessionId);
 
         if (result is { IsFailure: true, Exception: NoSuch<AuthSession> })
         {
@@ -51,7 +55,7 @@ public class AuthController(AuthInteractor authInteractor) : ControllerBase
         [FromBody] RefreshTokensBody body
     )
     {
-        var result = await authInteractor.RefreshTokens(body.RefreshToken);
+        var result = await refreshTokensUseCase.Execute(body.RefreshToken);
 
         if (result.IsFailure)
         {

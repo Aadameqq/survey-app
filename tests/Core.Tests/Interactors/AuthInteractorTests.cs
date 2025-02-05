@@ -1,7 +1,6 @@
 using Core.Domain;
 using Core.Dtos;
 using Core.Exceptions;
-using Core.Interactors;
 using Core.Ports;
 using Moq;
 

@@ -1,0 +1,41 @@
+using Core.Domain;
+using Core.Exceptions;
+using Core.Ports;
+
+namespace Core.UseCases;
+
+public class CreateAccountUseCase(
+    AccountsRepository accountsRepository,
+    PasswordHasher passwordHasher,
+    ActivationCodesRepository activationCodesRepository,
+    ActivationCodeEmailSender codeEmailSender
+)
+{
+    public async Task<Result> Execute(string userName, string email, string plainPassword)
+    {
+        var found = await accountsRepository.FindByEmail(email);
+
+        if (found != null)
+        {
+            return new AlreadyExists<Account>();
+        }
+
+        var hashedPassword = passwordHasher.HashPassword(plainPassword);
+
+        var account = new Account
+        {
+            Email = email,
+            UserName = userName,
+            Password = hashedPassword,
+        };
+
+        await accountsRepository.Create(account);
+        await accountsRepository.Flush();
+
+        var code = await activationCodesRepository.Create(account);
+
+        codeEmailSender.Send(account, code);
+
+        return Result.Success();
+    }
+}
