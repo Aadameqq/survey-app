@@ -27,7 +27,7 @@ public static class DependencyInjection
         services.AddScoped<RefreshTokensRepository, EfRefreshTokensRepository>();
         services.AddScoped<AuthSessionsRepository, EfAuthSessionsRepository>();
         services.AddScoped<RefreshTokensFactory, RefreshTokensFactoryImpl>();
-        services.AddScoped<ActivationEmailBodyGenerator, ActivationEmailBodyGeneratorImpl>();
+        services.AddScoped<ActivationCodeEmailSender, ActivationCodeEmailSenderImpl>();
         services.AddScoped<EmailSender, SystemEmailSender>();
         services.AddScoped<ActivationCodesRepository, RedisActivationCodesRepository>();
         services.AddSingleton<AccessTokenService, AspAccessTokenService>();

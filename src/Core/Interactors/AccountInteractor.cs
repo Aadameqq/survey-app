@@ -7,8 +7,7 @@ namespace Core.Interactors;
 public class AccountInteractor(
     AccountsRepository accountsRepository,
     PasswordHasher passwordHasher,
-    EmailSender emailSender,
-    ActivationEmailBodyGenerator emailBodyGenerator,
+    ActivationCodeEmailSender codeEmailSender,
     ActivationCodesRepository activationCodesRepository
 )
 {
@@ -23,21 +22,19 @@ public class AccountInteractor(
 
         var hashedPassword = passwordHasher.HashPassword(plainPassword);
 
-        var user = new Account
+        var account = new Account
         {
             Email = email,
             UserName = userName,
             Password = hashedPassword,
         };
 
-        await accountsRepository.Create(user);
+        await accountsRepository.Create(account);
         await accountsRepository.Flush();
 
-        var code = await activationCodesRepository.Create(user);
+        var code = await activationCodesRepository.Create(account);
 
-        var content = emailBodyGenerator.Generate(user, code);
-
-        emailSender.Send(user.Email, "Account Activation", content);
+        codeEmailSender.Send(account, code);
 
         return Result.Success();
     }

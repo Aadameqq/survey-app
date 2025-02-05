@@ -8,11 +8,11 @@ namespace Core.Tests.Interactors;
 
 public class AccountInteractorTests
 {
+    private readonly AccountInteractor accountInteractor;
     private readonly Mock<ActivationCodesRepository> codeRepositoryMock = new();
-    private readonly Mock<ActivationEmailBodyGenerator> emailBodyGeneratorMock = new();
+    private readonly Mock<ActivationCodeEmailSender> emailBodyGeneratorMock = new();
     private readonly Mock<EmailSender> emailSenderMock = new();
     private readonly Mock<PasswordHasher> passwordHasherMock = new();
-    private readonly AccountInteractor accountInteractor;
     private readonly Mock<AccountsRepository> usersRepositoryMock = new();
 
     public AccountInteractorTests()
