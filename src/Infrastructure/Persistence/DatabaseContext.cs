@@ -8,7 +8,7 @@ namespace Infrastructure.Persistence;
 public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbContext
 {
     public DbSet<Account> Users { get; set; }
-    public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<ArchivedToken> ArchivedTokens { get; set; }
     public DbSet<AuthSession> AuthSessions { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -18,22 +18,25 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<RefreshToken>(b =>
+        modelBuilder.Entity<ArchivedToken>(b =>
         {
-            b.Property<Guid>("Id").ValueGeneratedOnAdd();
-            b.Property<bool>("revoked").HasColumnName("Revoked");
-            b.Property<DateTime>("expiredAt").HasColumnName("ExpiredAt");
+            b.Property<Guid>("id").ValueGeneratedOnAdd();
+            b.Property<string>("Token").HasColumnName("Token");
 
-            b.HasOne(rt => rt.Session)
+            modelBuilder
+                .Entity<ArchivedToken>()
+                .HasOne(a => a.Session)
                 .WithMany()
-                .HasForeignKey("SessionId")
+                .HasForeignKey(a => a.SessionId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<AuthSession>(b =>
         {
             b.Property<Guid>("Id").ValueGeneratedOnAdd();
-            b.Property<Guid>("UserId");
+            b.Property<DateTime>("expiresAt").HasColumnName("ExpiresAt");
+            b.Property<Guid>("UserId").HasColumnName("UserId");
+            b.Property<string>("CurrentToken").HasColumnName("CurrentToken");
         });
 
         modelBuilder.Entity<Account>(b =>

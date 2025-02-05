@@ -9,9 +9,9 @@ public class AuthInteractor(
     AccountsRepository accountsRepository,
     PasswordVerifier passwordVerifier,
     RefreshTokensFactory refreshTokensFactory,
-    RefreshTokensRepository refreshTokensRepository,
     AuthSessionsRepository authSessionsRepository,
-    AccessTokenService accessTokenService
+    AccessTokenService accessTokenService,
+    DateTimeProvider dateTimeProvider
 )
 {
     public async Task<Result<TokenPairOutput>> LogIn(string email, string password)
@@ -32,10 +32,13 @@ public class AuthInteractor(
             return new AccountNotActivated();
         }
 
-        var session = new AuthSession(user.Id);
-        var tokenPair = await CreateTokenPair(session);
-        await refreshTokensRepository.Flush();
-        return tokenPair;
+        var refreshToken = refreshTokensFactory.Generate();
+        var session = new AuthSession(user.Id, dateTimeProvider.Now(), refreshToken);
+        var accessToken = accessTokenService.Create(session);
+        await authSessionsRepository.Create(session);
+        await authSessionsRepository.Flush();
+
+        return new TokenPairOutput(accessToken, refreshToken);
     }
 
     public async Task<Result> LogOut(Guid sessionId)
@@ -55,38 +58,39 @@ public class AuthInteractor(
 
     public async Task<Result<TokenPairOutput>> RefreshTokens(string token)
     {
-        var refreshToken = await refreshTokensRepository.FindByToken(token);
+        var session = await authSessionsRepository.FindByToken(token);
 
-        if (refreshToken is null)
+        if (session is null)
         {
-            return new NoSuch<RefreshToken>();
-        }
+            var authSession = await authSessionsRepository.FindByArchivedToken(token);
 
-        var session = refreshToken.Session;
+            if (authSession is null)
+            {
+                return new NoSuch<AuthSession>();
+            }
 
-        if (refreshToken.IsInvalid())
-        {
-            await authSessionsRepository.Remove(session);
+            await authSessionsRepository.Remove(authSession);
             await authSessionsRepository.Flush();
             return new InvalidToken();
         }
 
-        refreshToken.Revoke();
-        await refreshTokensRepository.Update(refreshToken);
+        if (!session.IsActive(dateTimeProvider.Now()))
+        {
+            await authSessionsRepository.Remove(session);
+            await authSessionsRepository.Flush();
+            return new NoSuch<AuthSession>();
+        }
 
-        var tokenPair = await CreateTokenPair(session);
-
-        await refreshTokensRepository.Flush();
-        return tokenPair;
-    }
-
-    private async Task<TokenPairOutput> CreateTokenPair(AuthSession session)
-    {
-        var refreshToken = refreshTokensFactory.Create(session);
-        await refreshTokensRepository.Persist(refreshToken);
-
+        var refreshToken = refreshTokensFactory.Generate();
         var accessToken = accessTokenService.Create(session);
 
-        return new TokenPairOutput(accessToken, refreshToken.Token);
+        await authSessionsRepository.ArchiveToken(session.GetTokenForArchiving());
+
+        session.Refresh(refreshToken, dateTimeProvider.Now());
+
+        await authSessionsRepository.Update(session);
+        await authSessionsRepository.Flush();
+
+        return new TokenPairOutput(accessToken, refreshToken);
     }
 }

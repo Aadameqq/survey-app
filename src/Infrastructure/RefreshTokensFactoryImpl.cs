@@ -1,18 +1,13 @@
 using System.Security.Cryptography;
-using Core.Domain;
 using Core.Ports;
-using Infrastructure.Options;
-using Microsoft.Extensions.Options;
 
 namespace Infrastructure;
 
-public class RefreshTokensFactoryImpl(IOptions<AuthOptions> authOptions) : RefreshTokensFactory
+public class RefreshTokensFactoryImpl : RefreshTokensFactory
 {
-    public RefreshToken Create(AuthSession session)
+    public string Generate()
     {
-        var lifeSpan = authOptions.Value.RefreshTokenLifetimeInMinutes;
-        var expires = DateTime.UtcNow.AddMinutes(lifeSpan);
-        return new RefreshToken(session, expires, GenerateRandomToken());
+        return GenerateRandomToken();
     }
 
     private string GenerateRandomToken()

@@ -57,7 +57,7 @@ public class AuthController(AuthInteractor authInteractor) : ControllerBase
         {
             return result.Exception switch
             {
-                NoSuch<RefreshToken> _ => Unauthorized(),
+                NoSuch<AuthSession> _ => Unauthorized(),
                 InvalidToken _ => Unauthorized(),
                 _ => throw result.Exception,
             };
