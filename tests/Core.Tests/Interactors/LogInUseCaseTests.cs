@@ -8,18 +8,20 @@ namespace Core.Tests.Interactors;
 
 public class LogInUseCaseTests
 {
-    private Mock<AccessTokenService> accessTokenServiceMock = new();
-    private Mock<AccountsRepository> accountsRepositoryMock = new();
-    private Mock<AuthSessionsRepository> authSessionsRepositoryMock = new();
-    private Mock<DateTimeProvider> dateTimeProviderMock = new();
-    private Account existingAccount = new("userName", "email", "password");
-    private string existingPlainPassword = "plain-password";
-    private string generatedAccessToken = "access-token";
-    private string generatedRefreshToken = "refresh-token";
-    private Mock<PasswordVerifier> passwordVerifierMock = new();
-    private Mock<RefreshTokensFactory> refreshTokensFactoryMock = new();
+    private readonly Mock<AccessTokenService> accessTokenServiceMock = new();
+    private readonly Mock<AccountsRepository> accountsRepositoryMock = new();
+    private readonly Mock<AuthSessionsRepository> authSessionsRepositoryMock = new();
+    private readonly Mock<DateTimeProvider> dateTimeProviderMock = new();
 
-    private LogInUseCase useCase;
+    private readonly Account existingAccount = new("userName", "email", "password");
+    private readonly string existingPlainPassword = "plain-password";
+    private readonly string generatedAccessToken = "access-token";
+    private readonly string generatedRefreshToken = "refresh-token";
+
+    private readonly Mock<PasswordVerifier> passwordVerifierMock = new();
+    private readonly Mock<RefreshTokensFactory> refreshTokensFactoryMock = new();
+
+    private readonly LogInUseCase useCase;
 
     public LogInUseCaseTests()
     {

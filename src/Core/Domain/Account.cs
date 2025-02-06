@@ -11,7 +11,7 @@ public class Account
         Password = password;
     }
 
-    public Guid Id { get; init; }
+    public Guid Id { get; } = Guid.NewGuid();
     public string UserName { get; private set; }
     public string Email { get; private set; }
     public string Password { get; private set; }
