@@ -4,7 +4,7 @@ using Core.Ports;
 using Core.UseCases;
 using Moq;
 
-namespace Core.Tests.Interactors;
+namespace Core.Tests.UseCases;
 
 public class ActivateAccountUseCaseTests
 {
