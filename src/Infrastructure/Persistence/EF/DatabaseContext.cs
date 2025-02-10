@@ -41,6 +41,7 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
 
         modelBuilder.Entity<Account>(b =>
         {
+            b.Property<Guid>("Id").ValueGeneratedOnAdd();
             b.Property<bool>("activated").HasColumnName("Activated");
         });
     }

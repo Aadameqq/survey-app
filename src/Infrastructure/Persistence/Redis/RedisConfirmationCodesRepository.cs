@@ -23,14 +23,14 @@ public class RedisConfirmationCodesRepository(
     public async Task<Guid?> GetAccountIdAndRevokeCode(string code)
     {
         var db = redis.GetDatabase();
-        var accountId = await db.StringGetAsync(code);
+        var accountId = await db.StringGetAsync($"{prefix}{code}");
 
         if (accountId.IsNullOrEmpty)
         {
             return null;
         }
 
-        await db.KeyDeleteAsync(code);
+        await db.KeyDeleteAsync($"{prefix}{code}");
 
         return Guid.Parse(accountId.ToString());
     }
