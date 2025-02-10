@@ -32,7 +32,7 @@ public class ResetPasswordUseCaseTests
         );
 
         codesRepositoryMock
-            .Setup(x => x.GetUserIdAndRevokeCode(existingCode))
+            .Setup(x => x.GetAccountIdAndRevokeCode(existingCode))
             .ReturnsAsync(existingAccount.Id);
 
         accountsRepositoryMock

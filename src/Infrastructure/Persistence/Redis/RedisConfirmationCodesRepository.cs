@@ -1,44 +1,38 @@
 using System.Security.Cryptography;
 using Core.Domain;
-using Core.Ports;
-using Infrastructure.Options;
-using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
-namespace Infrastructure;
+namespace Infrastructure.Persistence.Redis;
 
-public class RedisActivationCodesRepository(
+public class RedisConfirmationCodesRepository(
     IConnectionMultiplexer redis,
-    IOptions<AccountOptions> accountOptions
-) : ActivationCodesRepository
+    string prefix,
+    TimeSpan codeLifeTime
+)
 {
-    public async Task<string> Create(Account account)
+    public async Task<string> Create(Account target)
     {
         var code = GenerateCode();
 
         var db = redis.GetDatabase();
-        await db.StringSetAsync(
-            code,
-            account.Id.ToString(),
-            TimeSpan.FromMinutes(accountOptions.Value.ActivationCodeLifeSpanInMinutes)
-        );
+        await db.StringSetAsync($"{prefix}{code}", target.Id.ToString(), codeLifeTime);
 
         return code;
     }
 
-    public async Task<Guid?> GetUserIdAndRevokeCode(string code)
+    public async Task<Guid?> GetAccountIdAndRevokeCode(string code)
     {
         var db = redis.GetDatabase();
-        var userId = await db.StringGetAsync(code);
+        var accountId = await db.StringGetAsync(code);
 
-        if (userId.IsNullOrEmpty)
+        if (accountId.IsNullOrEmpty)
         {
             return null;
         }
 
         await db.KeyDeleteAsync(code);
 
-        return Guid.Parse(userId.ToString());
+        return Guid.Parse(accountId.ToString());
     }
 
     private string GenerateCode()

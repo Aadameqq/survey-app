@@ -11,7 +11,7 @@ public class ActivateAccountUseCase(
 {
     public async Task<Result> Execute(string code)
     {
-        var userId = await activationCodesRepository.GetUserIdAndRevokeCode(code);
+        var userId = await activationCodesRepository.GetAccountIdAndRevokeCode(code);
 
         if (userId is null)
         {

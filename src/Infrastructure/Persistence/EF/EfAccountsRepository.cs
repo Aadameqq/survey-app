@@ -2,7 +2,7 @@ using Core.Domain;
 using Core.Ports;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Persistence;
+namespace Infrastructure.Persistence.EF;
 
 public class EfAccountsRepository(DatabaseContext ctx) : AccountsRepository
 {

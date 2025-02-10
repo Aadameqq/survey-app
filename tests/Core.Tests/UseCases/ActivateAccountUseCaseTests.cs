@@ -24,7 +24,7 @@ public class ActivateAccountUseCaseTests
         );
 
         activationCodesRepositoryMock
-            .Setup(x => x.GetUserIdAndRevokeCode(existingCode))
+            .Setup(x => x.GetAccountIdAndRevokeCode(existingCode))
             .ReturnsAsync(existingAccount.Id);
 
         accountsRepositoryMock
@@ -46,7 +46,7 @@ public class ActivateAccountUseCaseTests
     public async Task WhenUserAssignedToCodeDoesNotExist_ShouldFail()
     {
         activationCodesRepositoryMock
-            .Setup(x => x.GetUserIdAndRevokeCode(existingCode))
+            .Setup(x => x.GetAccountIdAndRevokeCode(existingCode))
             .ReturnsAsync(Guid.Empty);
 
         var result = await useCase.Execute(existingCode);

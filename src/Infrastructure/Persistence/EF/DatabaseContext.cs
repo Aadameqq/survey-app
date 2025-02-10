@@ -3,7 +3,7 @@ using Infrastructure.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-namespace Infrastructure.Persistence;
+namespace Infrastructure.Persistence.EF;
 
 public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbContext
 {

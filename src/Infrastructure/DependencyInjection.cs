@@ -1,6 +1,7 @@
 using Core.Ports;
 using Infrastructure.Options;
-using Infrastructure.Persistence;
+using Infrastructure.Persistence.EF;
+using Infrastructure.Persistence.Redis;
 using Infrastructure.smtp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

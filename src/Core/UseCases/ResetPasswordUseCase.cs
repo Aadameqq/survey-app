@@ -13,7 +13,7 @@ public class ResetPasswordUseCase(
 {
     public async Task<Result> Execute(string resetCode, string newPassword)
     {
-        var accountId = await passwordResetCodesRepository.GetUserIdAndRevokeCode(resetCode);
+        var accountId = await passwordResetCodesRepository.GetAccountIdAndRevokeCode(resetCode);
 
         if (accountId is null)
         {
