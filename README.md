@@ -1,5 +1,5 @@
 # Contest app
-A contest management platform that enables easy organization of programming competitions, designed to be convenient, easy to develop, and highly customizable.
+A contest management platform that enables easy organization of programming competitions, designed to be convenient, easy to develop, and highly customizable
 
 ## Development
 
