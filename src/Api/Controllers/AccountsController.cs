@@ -29,7 +29,7 @@ public class AccountsController(
             return ApiResponse.Conflict("Account with given email already exists");
         }
 
-        return CreatedAtAction(nameof(GetAuthenticated), new { });
+        return ApiResponse.Ok();
     }
 
     [HttpGet("@me")]
@@ -50,7 +50,7 @@ public class AccountsController(
         return new GetAuthenticatedUserResponse(result.Value);
     }
 
-    [HttpDelete("password")]
+    [HttpDelete("@me/password")]
     public async Task<IActionResult> InitializeResetPassword(
         [FromBody] InitializeResetPasswordBody body
     )
@@ -65,7 +65,7 @@ public class AccountsController(
         return ApiResponse.Ok("Password reset email sent");
     }
 
-    [HttpGet("activation/{code}")]
+    [HttpGet("@me/activation/{code}")]
     public async Task<IActionResult> Activate([FromRoute] string code)
     {
         var result = await activateAccountUseCase.Execute(code);
@@ -83,7 +83,7 @@ public class AccountsController(
         return ApiResponse.Ok("Account activated");
     }
 
-    [HttpDelete("password/{code}")]
+    [HttpDelete("@me/password/{code}")]
     public async Task<IActionResult> ResetPassword(
         [FromRoute] string code,
         [FromBody] ResetPasswordBody body
