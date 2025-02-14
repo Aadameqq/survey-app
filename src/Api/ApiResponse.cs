@@ -9,6 +9,16 @@ public static class ApiResponse
         return GenerateResponse(403, customMessage);
     }
 
+    public static ActionResult Unauthorized(string customMessage = "Unauthorized")
+    {
+        return GenerateResponse(401, customMessage);
+    }
+
+    public static Task ApplyAsync(HttpContext ctx, ActionResult result)
+    {
+        return result.ExecuteResultAsync(new ActionContext { HttpContext = ctx });
+    }
+
     private static ActionResult GenerateResponse(int statusCode, string message)
     {
         return new JsonResult(new { message }) { StatusCode = statusCode };
