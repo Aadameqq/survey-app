@@ -3,7 +3,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Api.Auth;
 
-public class IgnoreAuthorizedUserBodyFilter : IOperationFilter
+public class AuthIgnoreBodyFilter : IOperationFilter
 {
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {

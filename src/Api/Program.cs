@@ -56,8 +56,8 @@ builder.Services.AddSwaggerGen(options =>
         }
     );
 
-    options.OperationFilter<IgnoreAuthorizedUserBodyFilter>();
-    options.DocumentFilter<RemoveAuthorizedUserSchemaFilter>();
+    options.OperationFilter<AuthIgnoreBodyFilter>();
+    options.DocumentFilter<AuthSchemaFilter>();
 });
 
 var app = builder.Build();
