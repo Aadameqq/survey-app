@@ -65,7 +65,7 @@ public class AspAccessTokenService(IOptions<AuthOptions> authOptions) : AccessTo
             var sessionId = Guid.Parse(GetClaim(principal, SessionIdClaimType));
             var role = GetClaim(principal, ClaimTypes.Role);
 
-            return new AccessTokenPayload(userId, sessionId, Role.TryParse(role).Value);
+            return new AccessTokenPayload(userId, sessionId, Role.ParseOrFail(role));
         }
         catch
         {

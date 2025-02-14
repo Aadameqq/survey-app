@@ -1,6 +1,5 @@
 using Api.Auth;
 using Api.Controllers.Dtos;
-using Api.Dtos;
 using Core.Domain;
 using Core.Exceptions;
 using Core.UseCases;
@@ -25,12 +24,9 @@ public class AccountsController(
     {
         var result = await createAccountUseCase.Execute(body.UserName, body.Email, body.Password);
 
-        if (result.IsFailure)
+        if (result is { IsFailure: true, Exception: AlreadyExists<Account> })
         {
-            if (result.Exception is AlreadyExists<Account>)
-            {
-                return Conflict();
-            }
+            return ApiResponse.Conflict("Account with given email already exists");
         }
 
         return CreatedAtAction(nameof(GetAuthenticated), new { });
@@ -44,17 +40,14 @@ public class AccountsController(
     {
         var result = await getCurrentAccountUseCase.Execute(user.UserId);
 
-        if (result.IsFailure)
+        if (result is { IsFailure: true, Exception: NoSuch<Account> })
         {
-            if (result.Exception is NoSuch<Account>)
-            {
-                throw new InvalidOperationException(
-                    "The operation could not proceed because the user is logged in but does not exist in the database. This might indicate a corrupted session or data inconsistency."
-                );
-            }
+            throw new InvalidOperationException(
+                "The operation could not proceed because the user is logged in but does not exist in the database. This might indicate a corrupted session or data inconsistency."
+            );
         }
 
-        return Ok(new { result.Value.Email });
+        return new GetAuthenticatedUserResponse(result.Value);
     }
 
     [HttpDelete("password")]
@@ -66,10 +59,10 @@ public class AccountsController(
 
         if (result is { IsFailure: true, Exception: NoSuch<Account> })
         {
-            return NotFound();
+            return ApiResponse.NotFound();
         }
 
-        return Ok(new { message = "Password reset email sent." });
+        return ApiResponse.Ok("Password reset email sent");
     }
 
     [HttpGet("activation/{code}")]
@@ -81,13 +74,13 @@ public class AccountsController(
         {
             return result.Exception switch
             {
-                NoSuch<Account> _ => NotFound(),
-                NoSuch _ => NotFound(),
+                NoSuch<Account> _ => ApiResponse.NotFound(),
+                NoSuch _ => ApiResponse.NotFound(),
                 _ => throw result.Exception,
             };
         }
 
-        return Ok("Account Activated");
+        return ApiResponse.Ok("Account activated");
     }
 
     [HttpDelete("password/{code}")]
@@ -100,10 +93,10 @@ public class AccountsController(
 
         if (result is { IsFailure: true, Exception: NoSuch })
         {
-            return NotFound();
+            return ApiResponse.NotFound();
         }
 
-        return Ok();
+        return ApiResponse.Ok();
     }
 
     [HttpPost("{accountId}/role")]
@@ -111,9 +104,15 @@ public class AccountsController(
     public async Task<IActionResult> AssignRole(
         [FromAuth] AuthorizedUser issuer,
         [FromRoute] string accountId,
-        [FromBody] AssignRoleBody body
+        [FromBody] AssignRoleBody body,
+        [FromAuth] AccessManager accessManager
     )
     {
+        if (!accessManager.HasAnyRole(Role.Admin))
+        {
+            return ApiResponse.Forbid();
+        }
+
         if (!Guid.TryParse(accountId, out var parsedAccountId))
         {
             return ApiResponse.NotFound("Account not found");
@@ -141,16 +140,22 @@ public class AccountsController(
             };
         }
 
-        return Ok();
+        return ApiResponse.Ok();
     }
 
     [HttpDelete("{accountId}/role")]
     [RequireAuth]
     public async Task<IActionResult> UnassignRole(
         [FromAuth] AuthorizedUser issuer,
-        [FromRoute] string accountId
+        [FromRoute] string accountId,
+        [FromAuth] AccessManager accessManager
     )
     {
+        if (!accessManager.HasAnyRole(Role.Admin))
+        {
+            return ApiResponse.Forbid();
+        }
+
         if (!Guid.TryParse(accountId, out var parsedAccountId))
         {
             return ApiResponse.NotFound();
@@ -162,7 +167,7 @@ public class AccountsController(
         {
             return result.Exception switch
             {
-                NoSuch<Account> _ => NotFound(),
+                NoSuch<Account> _ => ApiResponse.NotFound(),
                 CannotManageOwn<Role> _ => ApiResponse.Forbid(
                     "Unassigning a role from your own account is not permitted"
                 ),
@@ -170,6 +175,6 @@ public class AccountsController(
             };
         }
 
-        return Ok();
+        return ApiResponse.Ok();
     }
 }

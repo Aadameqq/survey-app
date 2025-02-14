@@ -19,9 +19,9 @@ public static class ApiResponse
         return GenerateResponse(409, customMessage);
     }
 
-    public static ActionResult Ok(string customMessage = "Ok")
+    public static ActionResult Ok(string customMessage = "Operation successful")
     {
-        return GenerateResponse(201, customMessage);
+        return GenerateResponse(200, customMessage);
     }
 
     public static ActionResult BadRequest(string customMessage = "Bad Request")
