@@ -18,11 +18,12 @@ public class AspAccessTokenService(IOptions<AuthOptions> authOptions) : AccessTo
         Encoding.UTF8.GetBytes(authOptions.Value.AccessTokenSecret)
     );
 
-    public string Create(AuthSession session)
+    public string Create(AuthSession session, Account account)
     {
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, session.UserId.ToString()),
+            new(ClaimTypes.Role, account.Role.Name),
             new(SessionIdClaimType, session.Id.ToString()),
         };
 
@@ -62,8 +63,9 @@ public class AspAccessTokenService(IOptions<AuthOptions> authOptions) : AccessTo
 
             var userId = Guid.Parse(GetClaim(principal, ClaimTypes.NameIdentifier));
             var sessionId = Guid.Parse(GetClaim(principal, SessionIdClaimType));
+            var role = GetClaim(principal, ClaimTypes.Role);
 
-            return new AccessTokenPayload(userId, sessionId);
+            return new AccessTokenPayload(userId, sessionId, Role.FromName(role).Value);
         }
         catch
         {

@@ -11,5 +11,10 @@ public class RemoveAuthorizedUserSchemaFilter : IDocumentFilter
         {
             swaggerDoc.Components.Schemas.Remove(nameof(AuthorizedUser));
         }
+
+        if (swaggerDoc.Components.Schemas.ContainsKey(nameof(AccessManager)))
+        {
+            swaggerDoc.Components.Schemas.Remove(nameof(AccessManager));
+        }
     }
 }

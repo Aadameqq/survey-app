@@ -16,25 +16,25 @@ public class LogInUseCase(
 {
     public async Task<Result<TokenPairOutput>> Execute(string email, string password)
     {
-        var user = await accountsRepository.FindByEmail(email);
-        if (user is null)
+        var account = await accountsRepository.FindByEmail(email);
+        if (account is null)
         {
             return new NoSuch<Account>();
         }
 
-        if (!passwordVerifier.Verify(password, user.Password))
+        if (!passwordVerifier.Verify(password, account.Password))
         {
             return new InvalidCredentials();
         }
 
-        if (!user.HasBeenActivated())
+        if (!account.HasBeenActivated())
         {
             return new AccountNotActivated();
         }
 
         var refreshToken = refreshTokensFactory.Generate();
-        var session = new AuthSession(user.Id, dateTimeProvider.Now(), refreshToken);
-        var accessToken = accessTokenService.Create(session);
+        var session = new AuthSession(account.Id, dateTimeProvider.Now(), refreshToken);
+        var accessToken = accessTokenService.Create(session, account);
         await authSessionsRepository.Create(session);
         await authSessionsRepository.Flush();
 

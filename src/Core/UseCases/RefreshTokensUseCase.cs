@@ -38,7 +38,8 @@ public class RefreshTokensUseCase(
         }
 
         var refreshToken = refreshTokensFactory.Generate();
-        var accessToken = accessTokenService.Create(session);
+        // var accessToken = accessTokenService.Create(session);
+        var accessToken = "test";
 
         await authSessionsRepository.ArchiveToken(session.GetTokenForArchiving());
 

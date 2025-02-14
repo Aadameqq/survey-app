@@ -43,6 +43,10 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
         {
             b.Property<Guid>("Id").ValueGeneratedOnAdd();
             b.Property<bool>("activated").HasColumnName("Activated");
+
+            b.Property(u => u.Role)
+                .HasConversion(role => role.Name, name => Role.FromName(name).Value)
+                .HasColumnType("varchar(50)");
         });
     }
 }

@@ -36,7 +36,8 @@ public class JwtMiddleware(RequestDelegate next, GetAccountFromTokenUseCase toke
 
         ctx.Items["authorizedUser"] = new AuthorizedUser(
             result.Value.UserId,
-            result.Value.SessionId
+            result.Value.SessionId,
+            result.Value.Role
         );
         await next(ctx);
     }

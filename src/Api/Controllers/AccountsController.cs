@@ -15,7 +15,9 @@ public class AccountsController(
     GetCurrentAccountUseCase getCurrentAccountUseCase,
     InitializePasswordResetUseCase initializePasswordResetUseCase,
     ActivateAccountUseCase activateAccountUseCase,
-    ResetPasswordUseCase resetPasswordUseCase
+    ResetPasswordUseCase resetPasswordUseCase,
+    AssignRoleUseCase assignRoleUseCase,
+    UnassignRoleUseCase unassignRoleUseCase
 ) : ControllerBase
 {
     [HttpPost("")]
@@ -99,6 +101,47 @@ public class AccountsController(
         if (result is { IsFailure: true, Exception: NoSuch })
         {
             return NotFound();
+        }
+
+        return Ok();
+    }
+
+    [HttpPost("{accountId}/role")]
+    [RequireAuth]
+    public async Task<IActionResult> AssignRole(
+        [FromRoute] string accountId,
+        [FromBody] AssignRoleBody body
+    )
+    {
+        var result = await assignRoleUseCase.Execute(Guid.Parse(accountId), body.RoleName);
+
+        if (result.IsFailure)
+        {
+            return result.Exception switch
+            {
+                NoSuch<Account> _ => NotFound(),
+                NoSuch<Role> _ => BadRequest(),
+                RoleHasBeenAlreadyAssigned _ => Conflict(),
+                _ => throw result.Exception,
+            };
+        }
+
+        return Ok();
+    }
+
+    [HttpDelete("{accountId}/role")]
+    [RequireAuth]
+    public async Task<IActionResult> UnassignRole([FromRoute] string accountId)
+    {
+        var result = await unassignRoleUseCase.Execute(Guid.Parse(accountId));
+
+        if (result.IsFailure)
+        {
+            return result.Exception switch
+            {
+                NoSuch<Account> _ => NotFound(),
+                _ => throw result.Exception,
+            };
         }
 
         return Ok();

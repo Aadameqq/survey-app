@@ -9,7 +9,9 @@ public class IgnoreAuthorizedUserBodyFilter : IOperationFilter
     {
         var bodyParameters = context
             .ApiDescription.ParameterDescriptions.Where(p =>
-                p.Source?.Id == "Body" && p.Type != typeof(AuthorizedUser)
+                p.Source?.Id == "Body"
+                && p.Type != typeof(AuthorizedUser)
+                && p.Type != typeof(AccessManager)
             )
             .ToList();
 

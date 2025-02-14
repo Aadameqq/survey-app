@@ -13,6 +13,7 @@ builder.Services.ConfigureCoreDependencies();
 builder.Services.AddControllers(options =>
 {
     options.ModelBinderProviders.Insert(0, new AuthorizedUserBinderProvider());
+    options.ModelBinderProviders.Insert(1, new AccessManagerBinderProvider());
 });
 
 builder.Services.AddEndpointsApiExplorer();
