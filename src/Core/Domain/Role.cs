@@ -1,5 +1,3 @@
-using Core.Exceptions;
-
 namespace Core.Domain;
 
 public record Role
@@ -24,14 +22,25 @@ public record Role
 
     public string Name { get; }
 
-    public static Result<Role> FromName(string name)
+    public static bool TryParse(string name, out Role role)
     {
-        if (!Roles.Exists(r => r.Name == name))
+        role = null;
+        var found = Roles.Find(r => r.Name == name);
+
+        if (found is null)
         {
-            return new NoSuch<Role>();
+            return false;
         }
 
-        return new Role(name);
+        role = found;
+        return true;
+    }
+
+    public static Role ParseOrFail(string name)
+    {
+        return TryParse(name, out var role)
+            ? role
+            : throw new InvalidOperationException($"Invalid role name '{name}'");
     }
 
     private static Role Register(string name)

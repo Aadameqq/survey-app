@@ -6,18 +6,11 @@ namespace Core.UseCases;
 
 public class AssignRoleUseCase(AccountsRepository accountsRepository)
 {
-    public async Task<Result> Execute(Guid issuerId, Guid accountId, string roleName)
+    public async Task<Result> Execute(Guid issuerId, Guid accountId, Role role)
     {
         if (issuerId == accountId)
         {
             return new CannotManageOwn<Role>();
-        }
-
-        var roleResult = Role.FromName(roleName);
-
-        if (roleResult.IsFailure)
-        {
-            return roleResult.Exception;
         }
 
         var account = await accountsRepository.FindById(accountId);
@@ -27,7 +20,7 @@ public class AssignRoleUseCase(AccountsRepository accountsRepository)
             return new NoSuch<Account>();
         }
 
-        var assignResult = account.AssignRole(roleResult.Value);
+        var assignResult = account.AssignRole(role);
 
         if (assignResult.IsFailure)
         {

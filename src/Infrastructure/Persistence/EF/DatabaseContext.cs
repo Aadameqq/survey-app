@@ -45,7 +45,7 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
             b.Property<bool>("activated").HasColumnName("Activated");
 
             b.Property(u => u.Role)
-                .HasConversion(role => role.Name, name => Role.FromName(name).Value)
+                .HasConversion(role => role.Name, name => Role.ParseOrFail(name))
                 .HasColumnType("varchar(50)");
         });
     }

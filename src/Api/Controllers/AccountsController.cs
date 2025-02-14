@@ -116,10 +116,15 @@ public class AccountsController(
     {
         if (!Guid.TryParse(accountId, out var parsedAccountId))
         {
-            return ApiResponse.NotFound();
+            return ApiResponse.NotFound("Account not found");
         }
 
-        var result = await assignRoleUseCase.Execute(issuer.UserId, parsedAccountId, body.RoleName);
+        if (!Role.TryParse(body.RoleName, out var role))
+        {
+            return ApiResponse.NotFound("Role not found");
+        }
+
+        var result = await assignRoleUseCase.Execute(issuer.UserId, parsedAccountId, role);
 
         if (result.IsFailure)
         {
@@ -129,7 +134,6 @@ public class AccountsController(
                 CannotManageOwn<Role> _ => ApiResponse.Forbid(
                     "Assigning a role to your own account is not permitted"
                 ),
-                NoSuch<Role> _ => ApiResponse.NotFound("Role not found"),
                 RoleHasBeenAlreadyAssigned _ => ApiResponse.Conflict(
                     "Account already assigned to role. Remove role before assigning"
                 ),
