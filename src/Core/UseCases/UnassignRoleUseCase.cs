@@ -6,8 +6,13 @@ namespace Core.UseCases;
 
 public class UnassignRoleUseCase(AccountsRepository accountsRepository)
 {
-    public async Task<Result> Execute(Guid accountId)
+    public async Task<Result> Execute(Guid issuerId, Guid accountId)
     {
+        if (issuerId == accountId)
+        {
+            return new CannotManageOwn<Role>();
+        }
+
         var account = await accountsRepository.FindById(accountId);
 
         if (account is null)

@@ -8,7 +8,7 @@ using Infrastructure.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Infrastructure;
+namespace Infrastructure.Other;
 
 public class AspAccessTokenService(IOptions<AuthOptions> authOptions) : AccessTokenService
 {

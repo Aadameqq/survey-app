@@ -109,19 +109,30 @@ public class AccountsController(
     [HttpPost("{accountId}/role")]
     [RequireAuth]
     public async Task<IActionResult> AssignRole(
+        [FromAuth] AuthorizedUser issuer,
         [FromRoute] string accountId,
         [FromBody] AssignRoleBody body
     )
     {
-        var result = await assignRoleUseCase.Execute(Guid.Parse(accountId), body.RoleName);
+        if (!Guid.TryParse(accountId, out var parsedAccountId))
+        {
+            return ApiResponse.NotFound();
+        }
+
+        var result = await assignRoleUseCase.Execute(issuer.UserId, parsedAccountId, body.RoleName);
 
         if (result.IsFailure)
         {
             return result.Exception switch
             {
-                NoSuch<Account> _ => NotFound(),
-                NoSuch<Role> _ => BadRequest(),
-                RoleHasBeenAlreadyAssigned _ => Conflict(),
+                NoSuch<Account> _ => ApiResponse.NotFound("Account not found"),
+                CannotManageOwn<Role> _ => ApiResponse.Forbid(
+                    "Assigning a role to your own account is not permitted"
+                ),
+                NoSuch<Role> _ => ApiResponse.NotFound("Role not found"),
+                RoleHasBeenAlreadyAssigned _ => ApiResponse.Conflict(
+                    "Account already assigned to role. Remove role before assigning"
+                ),
                 _ => throw result.Exception,
             };
         }
@@ -131,15 +142,26 @@ public class AccountsController(
 
     [HttpDelete("{accountId}/role")]
     [RequireAuth]
-    public async Task<IActionResult> UnassignRole([FromRoute] string accountId)
+    public async Task<IActionResult> UnassignRole(
+        [FromAuth] AuthorizedUser issuer,
+        [FromRoute] string accountId
+    )
     {
-        var result = await unassignRoleUseCase.Execute(Guid.Parse(accountId));
+        if (!Guid.TryParse(accountId, out var parsedAccountId))
+        {
+            return ApiResponse.NotFound();
+        }
+
+        var result = await unassignRoleUseCase.Execute(issuer.UserId, parsedAccountId);
 
         if (result.IsFailure)
         {
             return result.Exception switch
             {
                 NoSuch<Account> _ => NotFound(),
+                CannotManageOwn<Role> _ => ApiResponse.Forbid(
+                    "Unassigning a role from your own account is not permitted"
+                ),
                 _ => throw result.Exception,
             };
         }
