@@ -1,3 +1,4 @@
+using Core.Domain;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -9,6 +10,7 @@ public class AuthSchemaFilter : IDocumentFilter
     {
         RemoveSchemaIfExists(swaggerDoc, nameof(AuthorizedUser));
         RemoveSchemaIfExists(swaggerDoc, nameof(AccessManager));
+        RemoveSchemaIfExists(swaggerDoc, nameof(Role));
     }
 
     private void RemoveSchemaIfExists(OpenApiDocument swaggerDoc, string name)
