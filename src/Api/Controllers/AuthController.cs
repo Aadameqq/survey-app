@@ -39,7 +39,7 @@ public class AuthController(
 
     [HttpDelete]
     [RequireAuth]
-    public async Task<IActionResult> LogOut(AuthorizedUser authUser)
+    public async Task<IActionResult> LogOut([FromAuth] AuthorizedUser authUser)
     {
         var result = await logOutUseCase.Execute(authUser.SessionId);
 

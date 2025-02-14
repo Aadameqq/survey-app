@@ -39,7 +39,7 @@ public class AccountsController(
     [HttpGet("@me")]
     [RequireAuth]
     public async Task<ActionResult<GetAuthenticatedUserResponse>> GetAuthenticated(
-        AuthorizedUser user
+        [FromAuth] AuthorizedUser user
     )
     {
         var result = await getCurrentAccountUseCase.Execute(user.UserId);

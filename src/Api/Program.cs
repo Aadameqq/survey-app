@@ -55,9 +55,6 @@ builder.Services.AddSwaggerGen(options =>
             Description = "Application programming interface",
         }
     );
-
-    options.OperationFilter<AuthIgnoreBodyFilter>();
-    options.DocumentFilter<AuthSchemaFilter>();
 });
 
 var app = builder.Build();

@@ -12,7 +12,7 @@ public class RolesController(ListRolesUseCase listRolesUseCase) : ControllerBase
 {
     [HttpGet]
     [RequireAuth]
-    public ActionResult<GetAllRolesResponse> GetAll(AccessManager accessManager)
+    public ActionResult<GetAllRolesResponse> GetAll([FromAuth] AccessManager accessManager)
     {
         if (!accessManager.HasAnyRole(Role.Admin))
         {
