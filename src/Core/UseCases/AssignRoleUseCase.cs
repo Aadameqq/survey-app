@@ -8,11 +8,6 @@ public class AssignRoleUseCase(AccountsRepository accountsRepository)
 {
     public async Task<Result> Execute(Guid issuerId, Guid accountId, Role role)
     {
-        if (issuerId == accountId)
-        {
-            return new CannotManageOwn<Role>();
-        }
-
         var account = await accountsRepository.FindById(accountId);
 
         if (account is null)
@@ -20,15 +15,14 @@ public class AssignRoleUseCase(AccountsRepository accountsRepository)
             return new NoSuch<Account>();
         }
 
-        var assignResult = account.AssignRole(role);
+        var result = account.AssignRole(role, issuerId);
 
-        if (assignResult.IsFailure)
+        if (result is { IsFailure: true, Exception: CannotManageOwn<Role> or RoleAlreadyAssigned })
         {
-            return assignResult.Exception;
+            return result.Exception;
         }
 
-        await accountsRepository.Update(account);
-        await accountsRepository.Flush();
+        await accountsRepository.UpdateAndFlush(account);
 
         return Result.Success();
     }

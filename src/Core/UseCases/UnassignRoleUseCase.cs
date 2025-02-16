@@ -8,11 +8,6 @@ public class UnassignRoleUseCase(AccountsRepository accountsRepository)
 {
     public async Task<Result> Execute(Guid issuerId, Guid accountId)
     {
-        if (issuerId == accountId)
-        {
-            return new CannotManageOwn<Role>();
-        }
-
         var account = await accountsRepository.FindById(accountId);
 
         if (account is null)
@@ -20,10 +15,14 @@ public class UnassignRoleUseCase(AccountsRepository accountsRepository)
             return new NoSuch<Account>();
         }
 
-        account.RemoveRole();
+        var result = account.RemoveRole(issuerId);
 
-        await accountsRepository.Update(account);
-        await accountsRepository.Flush();
+        if (result is { IsFailure: true, Exception: CannotManageOwn<Role> })
+        {
+            return result.Exception;
+        }
+
+        await accountsRepository.UpdateAndFlush(account);
 
         return Result.Success();
     }

@@ -6,12 +6,10 @@ using Core.Ports;
 namespace Core.UseCases;
 
 public class LogInUseCase(
-    RefreshTokensFactory refreshTokensFactory,
     AccountsRepository accountsRepository,
-    AccessTokenService accessTokenService,
+    TokenService tokenService,
     PasswordVerifier passwordVerifier,
-    DateTimeProvider dateTimeProvider,
-    AuthSessionsRepository authSessionsRepository
+    DateTimeProvider dateTimeProvider
 )
 {
     public async Task<Result<TokenPairOutput>> Execute(string email, string password)
@@ -27,16 +25,18 @@ public class LogInUseCase(
             return new InvalidCredentials();
         }
 
-        if (!account.HasBeenActivated())
+        var refreshToken = tokenService.CreateRefreshToken(account);
+
+        var result = account.CreateSession(dateTimeProvider.Now(), refreshToken);
+
+        if (result is { IsFailure: true, Exception: AccountNotActivated })
         {
-            return new AccountNotActivated();
+            return result.Exception;
         }
 
-        var refreshToken = refreshTokensFactory.Generate();
-        var session = new AuthSession(account.Id, dateTimeProvider.Now(), refreshToken);
-        var accessToken = accessTokenService.Create(session, account);
-        await authSessionsRepository.Create(session);
-        await authSessionsRepository.Flush();
+        var accessToken = tokenService.CreateAccessToken(account, result.Value);
+
+        await accountsRepository.UpdateAndFlush(account);
 
         return new TokenPairOutput(accessToken, refreshToken);
     }

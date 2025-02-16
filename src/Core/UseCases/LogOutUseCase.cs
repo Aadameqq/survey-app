@@ -4,19 +4,20 @@ using Core.Ports;
 
 namespace Core.UseCases;
 
-public class LogOutUseCase(AuthSessionsRepository authSessionsRepository)
+public class LogOutUseCase(AccountsRepository accountsRepository)
 {
-    public async Task<Result> Execute(Guid sessionId)
+    public async Task<Result> Execute(Guid accountId, Guid sessionId)
     {
-        var session = await authSessionsRepository.FindById(sessionId);
+        var account = await accountsRepository.FindById(accountId);
 
-        if (session is null)
+        if (account is null)
         {
-            return new NoSuch<AuthSession>();
+            return new NoSuch<Account>();
         }
 
-        await authSessionsRepository.Remove(session);
-        await authSessionsRepository.Flush();
+        account.DestroySession(sessionId);
+
+        await accountsRepository.UpdateAndFlush(account);
 
         return Result.Success();
     }

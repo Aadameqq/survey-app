@@ -133,7 +133,7 @@ public class AccountsController(
                 CannotManageOwn<Role> _ => ApiResponse.Forbid(
                     "Assigning a role to your own account is not permitted"
                 ),
-                RoleHasBeenAlreadyAssigned _ => ApiResponse.Conflict(
+                RoleAlreadyAssigned _ => ApiResponse.Conflict(
                     "Account already assigned to role. Remove role before assigning"
                 ),
                 _ => throw result.Exception,

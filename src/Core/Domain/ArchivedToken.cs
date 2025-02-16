@@ -13,5 +13,4 @@ public class ArchivedToken
     public string Token { get; private set; }
 
     public Guid SessionId { get; private set; }
-    public AuthSession Session { get; private set; }
 }

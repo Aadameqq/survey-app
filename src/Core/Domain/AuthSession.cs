@@ -1,3 +1,5 @@
+using Core.Exceptions;
+
 namespace Core.Domain;
 
 public class AuthSession
@@ -18,15 +20,19 @@ public class AuthSession
     public string CurrentToken { get; private set; }
     public Guid UserId { get; }
 
-    public ArchivedToken GetTokenForArchiving()
+    public Result<ArchivedToken> Refresh(string newToken, DateTime now)
     {
-        return new ArchivedToken(CurrentToken, Id);
-    }
+        if (!IsActive(now))
+        {
+            return new SessionInactive();
+        }
 
-    public void Refresh(string newToken, DateTime now)
-    {
+        var archived = new ArchivedToken(CurrentToken, Id);
+
         CurrentToken = newToken;
         expiresAt = now + lifeSpan;
+
+        return archived;
     }
 
     public bool IsActive(DateTime now)
