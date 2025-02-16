@@ -31,18 +31,26 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<AuthSession>(b =>
-        {
-            b.Property<Guid>("Id").ValueGeneratedOnAdd();
-            b.Property<DateTime>("expiresAt").HasColumnName("ExpiresAt");
-            b.Property<Guid>("UserId").HasColumnName("UserId");
-            b.Property<string>("CurrentToken").HasColumnName("CurrentToken");
-        });
-
         modelBuilder.Entity<Account>(b =>
         {
             b.Property<Guid>("Id").ValueGeneratedOnAdd();
             b.Property<bool>("activated").HasColumnName("Activated");
+
+            b.Property(u => u.Role)
+                .HasConversion(role => role.Name, name => Role.ParseOrFail(name))
+                .HasColumnType("varchar(50)");
+
+            b.OwnsMany<AuthSession>(
+                "sessions",
+                b2 =>
+                {
+                    b2.Property<Guid>("Id").ValueGeneratedOnAdd();
+                    b2.Property<DateTime>("expiresAt").HasColumnName("ExpiresAt");
+                    b2.Property<Guid>("UserId").HasColumnName("UserId");
+                    b2.Property<string>("CurrentToken").HasColumnName("CurrentToken");
+                    b2.WithOwner().HasForeignKey("UserId");
+                }
+            );
         });
     }
 }

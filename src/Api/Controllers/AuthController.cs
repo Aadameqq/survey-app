@@ -1,4 +1,5 @@
 using Api.Auth;
+using Api.Controllers.Dtos;
 using Api.Dtos;
 using Core.Domain;
 using Core.Exceptions;
@@ -24,10 +25,10 @@ public class AuthController(
         {
             return result.Exception switch
             {
-                NoSuch<Account> _ => Unauthorized(),
-                InvalidCredentials _ => Unauthorized(),
-                AccountNotActivated _ => Unauthorized(
-                    new { message = "Account has not been activated yet" }
+                NoSuch<Account> _ => ApiResponse.Unauthorized(),
+                InvalidCredentials _ => ApiResponse.Unauthorized(),
+                AccountNotActivated _ => ApiResponse.Unauthorized(
+                    "Account has not been activated yet"
                 ),
                 _ => throw result.Exception,
             };
@@ -38,16 +39,16 @@ public class AuthController(
 
     [HttpDelete]
     [RequireAuth]
-    public async Task<IActionResult> LogOut(AuthorizedUser authUser)
+    public async Task<IActionResult> LogOut([FromAuth] AuthorizedUser authUser)
     {
         var result = await logOutUseCase.Execute(authUser.SessionId);
 
         if (result is { IsFailure: true, Exception: NoSuch<AuthSession> })
         {
-            return Unauthorized();
+            return ApiResponse.Unauthorized();
         }
 
-        return Ok();
+        return ApiResponse.Ok();
     }
 
     [HttpPut]
@@ -61,8 +62,8 @@ public class AuthController(
         {
             return result.Exception switch
             {
-                NoSuch<AuthSession> _ => Unauthorized(),
-                InvalidToken _ => Unauthorized(),
+                NoSuch<AuthSession> _ => ApiResponse.Unauthorized(),
+                InvalidToken _ => ApiResponse.Unauthorized(),
                 _ => throw result.Exception,
             };
         }

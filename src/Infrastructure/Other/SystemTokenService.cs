@@ -8,28 +8,32 @@ using Infrastructure.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Infrastructure;
+namespace Infrastructure.Other;
 
-public class AspAccessTokenService(IOptions<AuthOptions> authOptions) : AccessTokenService
+public class SystemTokenService(IOptions<AuthOptions> authOptions) : TokenService
 {
     private const string SessionIdClaimType = "sessionId";
 
-    private readonly SymmetricSecurityKey signingKey = new(
+    private readonly SymmetricSecurityKey accessTokenSigningKey = new(
         Encoding.UTF8.GetBytes(authOptions.Value.AccessTokenSecret)
     );
 
-    public string Create(AuthSession session)
+    private readonly SymmetricSecurityKey refreshTokenSigningKey = new(
+        Encoding.UTF8.GetBytes(authOptions.Value.RefreshTokenSecret)
+    );
+
+    public string CreateRefreshToken(Account account)
     {
-        var claims = new List<Claim>
+        var refreshTokenClaims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, session.UserId.ToString()),
-            new(SessionIdClaimType, session.Id.ToString()),
+            new(ClaimTypes.NameIdentifier, account.Id.ToString()),
         };
 
         return GenerateToken(
-            claims,
+            refreshTokenClaims,
             authOptions.Value.Issuer,
-            authOptions.Value.AccessTokenLifetimeInMinutes
+            authOptions.Value.RefreshTokenLifetimeInMinutes,
+            refreshTokenSigningKey
         );
     }
 
@@ -42,7 +46,7 @@ public class AspAccessTokenService(IOptions<AuthOptions> authOptions) : AccessTo
             ValidateIssuer = true,
             ValidIssuer = authOptions.Value.Issuer,
             ValidateAudience = false,
-            IssuerSigningKey = signingKey,
+            IssuerSigningKey = accessTokenSigningKey,
         };
         try
         {
@@ -62,13 +66,39 @@ public class AspAccessTokenService(IOptions<AuthOptions> authOptions) : AccessTo
 
             var userId = Guid.Parse(GetClaim(principal, ClaimTypes.NameIdentifier));
             var sessionId = Guid.Parse(GetClaim(principal, SessionIdClaimType));
+            var role = GetClaim(principal, ClaimTypes.Role);
 
-            return new AccessTokenPayload(userId, sessionId);
+            return new AccessTokenPayload(userId, sessionId, Role.ParseOrFail(role));
         }
         catch
         {
             return null;
         }
+    }
+
+    public TokenPairOutput CreatePair(Account account, Guid sessionId)
+    {
+        return new TokenPairOutput(
+            CreateAccessToken(account, sessionId),
+            CreateRefreshToken(account)
+        );
+    }
+
+    public string CreateAccessToken(Account account, Guid sessionId)
+    {
+        var accessTokenClaims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, account.Id.ToString()),
+            new(ClaimTypes.Role, account.Role.Name),
+            new(SessionIdClaimType, sessionId.ToString()),
+        };
+
+        return GenerateToken(
+            accessTokenClaims,
+            authOptions.Value.Issuer,
+            authOptions.Value.AccessTokenLifetimeInMinutes,
+            accessTokenSigningKey
+        );
     }
 
     private static string GetClaim(ClaimsPrincipal principal, string claimType)
@@ -82,7 +112,12 @@ public class AspAccessTokenService(IOptions<AuthOptions> authOptions) : AccessTo
         return claim;
     }
 
-    private string GenerateToken(List<Claim> claims, string issuer, int lifetimeInMinutes)
+    private string GenerateToken(
+        List<Claim> claims,
+        string issuer,
+        int lifetimeInMinutes,
+        SymmetricSecurityKey signingKey
+    )
     {
         var now = DateTime.UtcNow;
         var token = new JwtSecurityToken(

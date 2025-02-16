@@ -8,6 +8,9 @@ public class AuthOptions
     public required string AccessTokenSecret { get; init; }
 
     [Required]
+    public required string RefreshTokenSecret { get; init; }
+
+    [Required]
     public required int AccessTokenLifetimeInMinutes { get; init; }
 
     [Required]
