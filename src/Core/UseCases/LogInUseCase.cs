@@ -25,19 +25,17 @@ public class LogInUseCase(
             return new InvalidCredentials();
         }
 
-        var refreshToken = tokenService.CreateRefreshToken(account);
-
-        var result = account.CreateSession(dateTimeProvider.Now(), refreshToken);
+        var result = account.CreateSession(dateTimeProvider.Now());
 
         if (result is { IsFailure: true, Exception: AccountNotActivated })
         {
             return result.Exception;
         }
 
-        var accessToken = tokenService.CreateAccessToken(account, result.Value);
+        var tokenPair = tokenService.CreateTokenPair(account, result.Value.SessionId);
 
         await accountsRepository.UpdateAndFlush(account);
 
-        return new TokenPairOutput(accessToken, refreshToken);
+        return tokenPair;
     }
 }

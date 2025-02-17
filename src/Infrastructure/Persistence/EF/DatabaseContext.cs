@@ -7,9 +7,7 @@ namespace Infrastructure.Persistence.EF;
 
 public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbContext
 {
-    public DbSet<Account> Users { get; set; }
-    public DbSet<ArchivedToken> ArchivedTokens { get; set; }
-    public DbSet<AuthSession> AuthSessions { get; set; }
+    public DbSet<Account> Accounts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -18,19 +16,6 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<ArchivedToken>(b =>
-        {
-            b.Property<Guid>("id").ValueGeneratedOnAdd();
-            b.Property<string>("Token").HasColumnName("Token");
-
-            modelBuilder
-                .Entity<ArchivedToken>()
-                .HasOne(a => a.Session)
-                .WithMany()
-                .HasForeignKey(a => a.SessionId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
         modelBuilder.Entity<Account>(b =>
         {
             b.Property<Guid>("Id").ValueGeneratedOnAdd();
@@ -46,9 +31,9 @@ public class DatabaseContext(IOptions<DatabaseOptions> databaseConfig) : DbConte
                 {
                     b2.Property<Guid>("Id").ValueGeneratedOnAdd();
                     b2.Property<DateTime>("expiresAt").HasColumnName("ExpiresAt");
-                    b2.Property<Guid>("UserId").HasColumnName("UserId");
+                    b2.Property<Guid>("AccountId").HasColumnName("AccountId");
                     b2.Property<string>("CurrentToken").HasColumnName("CurrentToken");
-                    b2.WithOwner().HasForeignKey("UserId");
+                    b2.WithOwner().HasForeignKey("AccountId");
                 }
             );
         });

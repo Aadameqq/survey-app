@@ -26,13 +26,12 @@ public static class DependencyInjection
         services.AddScoped<PasswordHasher, BCryptPasswordService>();
         services.AddScoped<PasswordVerifier, BCryptPasswordService>();
         services.AddScoped<AccountsRepository, EfAccountsRepository>();
-        services.AddScoped<AuthSessionsRepository, EfAuthSessionsRepository>();
-        services.AddScoped<RefreshTokensFactory, RefreshTokensFactoryImpl>();
         services.AddScoped<ActivationCodeEmailSender, ActivationCodeEmailSenderImpl>();
         services.AddScoped<EmailSender, SystemEmailSender>();
         services.AddScoped<ActivationCodesRepository, RedisActivationCodesRepository>();
         services.AddScoped<PasswordResetCodesRepository, RedisPasswordResetCodesRepository>();
         services.AddScoped<PasswordResetEmailSender, PasswordResetEmailSenderImpl>();
+        services.AddScoped<ArchivedTokensRepository, EfArchivedTokensRepository>();
         services.AddSingleton<TokenService, SystemTokenService>();
         services.AddSingleton<DateTimeProvider, SystemDateTimeProvider>();
         return services;

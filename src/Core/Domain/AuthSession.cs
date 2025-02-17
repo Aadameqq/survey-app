@@ -7,32 +7,31 @@ public class AuthSession
     private DateTime expiresAt;
     private TimeSpan lifeSpan = TimeSpan.FromMinutes(30);
 
-    public AuthSession(Guid userId, DateTime now, string refreshToken)
+    public AuthSession(Guid userId, DateTime now)
     {
         UserId = userId;
         expiresAt = now + lifeSpan;
-        CurrentToken = refreshToken;
+        CurrentToken = new RefreshToken(Id);
     }
 
     private AuthSession() { }
 
     public Guid Id { get; init; } = Guid.NewGuid();
-    public string CurrentToken { get; private set; }
+    public RefreshToken CurrentToken { get; private set; }
     public Guid UserId { get; }
 
-    public Result<ArchivedToken> Refresh(string newToken, DateTime now)
+    public Result<RefreshToken> Refresh(DateTime now)
     {
         if (!IsActive(now))
         {
             return new SessionInactive();
         }
 
-        var archived = new ArchivedToken(CurrentToken, Id);
+        CurrentToken = new RefreshToken(Id);
 
-        CurrentToken = newToken;
         expiresAt = now + lifeSpan;
 
-        return archived;
+        return CurrentToken;
     }
 
     public bool IsActive(DateTime now)

@@ -8,46 +8,36 @@ namespace Core.UseCases;
 public class RefreshTokensUseCase(
     AccountsRepository accountsRepository,
     DateTimeProvider dateTimeProvider,
-    TokenService tokenService,
-    ArchivedTokensRepository archivedTokensRepository
+    TokenService tokenService
 )
 {
-    public async Task<Result<TokenPairOutput>> Execute(Guid accountId, string token)
+    public async Task<Result<TokenPairOutput>> Execute(string token)
     {
-        var account = await accountsRepository.FindById(accountId);
+        var payload = await tokenService.FetchRefreshTokenPayloadIfValid(token);
+
+        if (payload is null)
+        {
+            return new InvalidToken();
+        }
+
+        var account = await accountsRepository.FindById(payload.AccountId);
 
         if (account is null)
         {
             return new NoSuch<Account>();
         }
 
-        var archived = await archivedTokensRepository.FindByToken(token);
+        var result = account.RefreshSession(payload.ToRefreshToken(), dateTimeProvider.Now());
 
-        if (archived is not null)
-        {
-            account.DestroyAllSessions();
-            await accountsRepository.UpdateAndFlush(account);
-
-            return new InvalidToken();
-        }
-
-        var refreshToken = tokenService.CreateRefreshToken(account);
-
-        var result = account.RefreshSession(token, dateTimeProvider.Now(), refreshToken);
-
-        if (result is { IsFailure: true, Exception: NoSuch<AuthSession> })
+        if (result is { IsFailure: true, Exception: NoSuch<AuthSession> or InvalidToken })
         {
             return result.Exception;
         }
 
-        var accessToken = tokenService.CreateAccessToken(
-            account,
-            account.GetSessionId(refreshToken)!.Value
-        );
+        var pair = tokenService.CreateTokenPair(account, payload.SessionId);
 
-        await archivedTokensRepository.CreateAndFlush(result.Value);
         await accountsRepository.UpdateAndFlush(account);
 
-        return new TokenPairOutput(accessToken, refreshToken);
+        return pair;
     }
 }

@@ -50,7 +50,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Core.Domain.ArchivedToken", b =>
@@ -71,7 +71,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("SessionId");
 
-                    b.ToTable("ArchivedTokens");
+                    b.ToTable("ArchivedTokens", (string)null);
                 });
 
             modelBuilder.Entity("Core.Domain.AuthSession", b =>
@@ -95,7 +95,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AuthSessions");
+                    b.ToTable("AuthSessions", (string)null);
                 });
 
             modelBuilder.Entity("Core.Domain.ArchivedToken", b =>

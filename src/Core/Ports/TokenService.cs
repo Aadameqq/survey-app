@@ -5,9 +5,10 @@ namespace Core.Ports;
 
 public interface TokenService
 {
-    TokenPairOutput CreatePair(Account account, Guid sessionId);
+    TokenPairOutput CreateTokenPair(Account account, Guid sessionId);
     string CreateAccessToken(Account account, Guid sessionId);
-    string CreateRefreshToken(Account account);
-
+    string CreateRefreshToken(Account account, Guid sessionId);
     Task<AccessTokenPayload?> FetchPayloadIfValid(string accessToken);
+
+    Task<RefreshTokenPayload?> FetchRefreshTokenPayloadIfValid(string refreshToken);
 }

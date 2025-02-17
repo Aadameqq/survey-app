@@ -1,4 +1,5 @@
 using Core.Domain;
+using Core.Dtos;
 using Core.Exceptions;
 using Core.Ports;
 using Core.UseCases;
@@ -13,8 +14,7 @@ public class LogInUseCaseTests
 
     private readonly Account existingAccount = new("userName", "email", "password");
     private readonly string existingPlainPassword = "plain-password";
-    private readonly string generatedAccessToken = "access-token";
-    private readonly string generatedRefreshToken = "refresh-token";
+    private readonly TokenPairOutput generatedTokenPair = new("access-token", "refresh-token");
 
     private readonly Mock<PasswordVerifier> passwordVerifierMock = new();
     private readonly Mock<TokenService> tokenServiceMock = new();
@@ -41,12 +41,8 @@ public class LogInUseCaseTests
         dateTimeProviderMock.Setup(x => x.Now()).Returns(DateTime.MinValue);
 
         tokenServiceMock
-            .Setup(x => x.CreateRefreshToken(existingAccount))
-            .Returns(generatedRefreshToken);
-
-        tokenServiceMock
-            .Setup(x => x.CreateAccessToken(existingAccount, It.IsAny<Guid>()))
-            .Returns(generatedAccessToken);
+            .Setup(x => x.CreateTokenPair(existingAccount, It.IsAny<Guid>()))
+            .Returns(generatedTokenPair);
     }
 
     [Fact]
@@ -87,8 +83,8 @@ public class LogInUseCaseTests
         var result = await useCase.Execute(existingAccount.Email, existingPlainPassword);
 
         Assert.True(result.IsSuccess);
-        Assert.Same(generatedAccessToken, result.Value.AccessToken);
-        Assert.Same(generatedRefreshToken, result.Value.RefreshToken);
+        Assert.Same(generatedTokenPair.AccessToken, result.Value.AccessToken);
+        Assert.Same(generatedTokenPair.RefreshToken, result.Value.RefreshToken);
     }
 
     [Fact]
@@ -105,15 +101,17 @@ public class LogInUseCaseTests
         var sessionId = Guid.Empty;
 
         tokenServiceMock
-            .Setup(t => t.CreateAccessToken(It.IsAny<Account>(), It.IsAny<Guid>()))
+            .Setup(t => t.CreateTokenPair(It.IsAny<Account>(), It.IsAny<Guid>()))
             .Callback((Account _, Guid s) => sessionId = s);
 
         await useCase.Execute(existingAccount.Email, existingPlainPassword);
 
+        var expectedToken = actualAccount.GetSessionCurrentToken(sessionId);
+
         Assert.NotNull(actualAccount);
         Assert.Equal(existingAccount.Id, actualAccount.Id);
-        Assert.NotNull(actualAccount.GetSessionId(generatedRefreshToken));
-        Assert.Equal(actualAccount.GetSessionId(generatedRefreshToken), sessionId);
+        Assert.NotNull(expectedToken);
+        Assert.Equal(expectedToken.Id);
     }
 
     private void AssertNoChanges()

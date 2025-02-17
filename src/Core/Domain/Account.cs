@@ -66,18 +66,18 @@ public class Account
         return Result.Success();
     }
 
-    public Result<Guid> CreateSession(DateTime now, string refreshToken)
+    public Result<RefreshToken> CreateSession(DateTime now)
     {
         if (!HasBeenActivated())
         {
             return new AccountNotActivated();
         }
 
-        var created = new AuthSession(Id, now, refreshToken);
+        var created = new AuthSession(Id, now);
 
         sessions.Add(created);
 
-        return created.Id;
+        return created.CurrentToken;
     }
 
     public void DestroySession(Guid sessionId)
@@ -90,16 +90,22 @@ public class Account
         sessions = [];
     }
 
-    public Result<ArchivedToken> RefreshSession(string oldToken, DateTime now, string newToken)
+    public Result<RefreshToken> RefreshSession(RefreshToken token, DateTime now)
     {
-        var session = sessions.Find(session => session.CurrentToken == oldToken);
+        var session = sessions.Find(session => session.Id == token.SessionId);
 
         if (session is null)
         {
             return new NoSuch<AuthSession>();
         }
 
-        var result = session.Refresh(newToken, now);
+        if (session.CurrentToken.Id == token.Id)
+        {
+            DestroyAllSessions();
+            return new InvalidToken();
+        }
+
+        var result = session.Refresh(now);
 
         if (result is { IsFailure: true, Exception: SessionInactive })
         {
@@ -116,8 +122,8 @@ public class Account
         DestroyAllSessions();
     }
 
-    public Guid? GetSessionId(string token)
+    public RefreshToken? GetSessionCurrentToken(Guid sessionId)
     {
-        return sessions.Find(s => s.CurrentToken == token)?.Id;
+        return sessions.Find(s => s.Id == sessionId)?.CurrentToken;
     }
 }

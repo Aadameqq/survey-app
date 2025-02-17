@@ -1,4 +1,5 @@
 using Core.Domain;
+using Core.Dtos;
 using Core.Exceptions;
 using Core.Ports;
 using Core.UseCases;
@@ -9,13 +10,13 @@ namespace Core.Tests.UseCases;
 public class RefreshTokensUseCaseTests
 {
     private readonly Mock<AccountsRepository> accountsRepositoryMock = new();
-    private readonly Mock<ArchivedTokensRepository> archivedTokensRepositoryMock = new();
     private readonly Mock<DateTimeProvider> dateTimeProviderMock = new();
 
     private readonly Account existingAccount = new("userName", "email", "password");
-    private readonly ArchivedToken existingArchivedToken = new("archived-token", Guid.NewGuid());
-    private readonly string generatedAccessToken = "access-token";
-    private readonly string generatedRefreshToken = "refresh-token";
+    private readonly RefreshToken existingRefreshToken = new("archived-token", Guid.NewGuid());
+    private readonly Guid existingSessionId;
+    private readonly string testToken = "valid-token";
+    private readonly TokenPairOutput testTokenPair = new("access-token", "refresh-token");
 
     private readonly Mock<TokenService> tokenServiceMock = new();
 
@@ -26,8 +27,7 @@ public class RefreshTokensUseCaseTests
         useCase = new RefreshTokensUseCase(
             accountsRepositoryMock.Object,
             dateTimeProviderMock.Object,
-            tokenServiceMock.Object,
-            archivedTokensRepositoryMock.Object
+            tokenServiceMock.Object
         );
         existingAccount.Activate();
 
@@ -35,21 +35,19 @@ public class RefreshTokensUseCaseTests
             .Setup(r => r.FindById(existingAccount.Id))
             .ReturnsAsync(existingAccount);
 
-        archivedTokensRepositoryMock
-            .Setup(r => r.FindByToken(existingArchivedToken.Token))
-            .ReturnsAsync(existingArchivedToken);
+        dateTimeProviderMock.Setup(p => p.Now()).Returns(DateTime.MinValue);
+
+        existingSessionId = CreateTestSession(testToken);
 
         tokenServiceMock
-            .Setup(s => s.CreateRefreshToken(It.Is((Account a) => a.Id == existingAccount.Id)))
-            .Returns(generatedRefreshToken);
-
-        dateTimeProviderMock.Setup(p => p.Now()).Returns(DateTime.MinValue);
+            .Setup(s => s.FetchRefreshTokenPayloadIfValid(testToken))
+            .ReturnsAsync(new RefreshTokenPayload(existingAccount.Id, existingSessionId));
     }
 
     [Fact]
-    public async Task ShouldFail_WhenAccountWithGivenIdDoesNotExist()
+    public async Task ShouldFail_WhenAccountWithGivenIdDoesNotExist() // TODO:
     {
-        var result = await useCase.Execute(Guid.Empty, "token");
+        var result = await useCase.Execute("token");
 
         Assert.True(result.IsFailure);
         Assert.IsType<NoSuch<Account>>(result.Exception);
@@ -59,7 +57,7 @@ public class RefreshTokensUseCaseTests
     [Fact]
     public async Task ShouldFail_WhenAccountExistsAndSessionWithGivenTokenDoesNotExistAndTokenIsNotArchived()
     {
-        var result = await useCase.Execute(existingAccount.Id, "invalid-token");
+        var result = await useCase.Execute("invalid-token");
 
         Assert.True(result.IsFailure);
         Assert.IsType<NoSuch<AuthSession>>(result.Exception);
@@ -69,7 +67,7 @@ public class RefreshTokensUseCaseTests
     [Fact]
     public async Task ShouldFail_WhenAccountExistsAndTokenIsArchived()
     {
-        var result = await useCase.Execute(existingAccount.Id, existingArchivedToken.Token);
+        var result = await useCase.Execute(existingRefreshToken.Token);
 
         Assert.True(result.IsFailure);
         Assert.IsType<InvalidToken>(result.Exception);
@@ -87,7 +85,7 @@ public class RefreshTokensUseCaseTests
             .Setup(r => r.UpdateAndFlush(It.IsAny<Account>()))
             .Callback((Account a) => actualAccount = a);
 
-        await useCase.Execute(existingAccount.Id, existingArchivedToken.Token);
+        await useCase.Execute(existingRefreshToken.Token);
 
         Assert.NotNull(actualAccount);
         Assert.Equal(existingAccount.Id, actualAccount.Id);
@@ -102,15 +100,15 @@ public class RefreshTokensUseCaseTests
 
         tokenServiceMock
             .Setup(s =>
-                s.CreateAccessToken(It.Is((Account a) => a.Id == existingAccount.Id), sessionId)
+                s.CreateTokenPair(It.Is((Account a) => a.Id == existingAccount.Id), sessionId)
             )
-            .Returns(generatedAccessToken);
+            .Returns(testTokenPair);
 
-        var result = await useCase.Execute(existingAccount.Id, testToken);
+        var result = await useCase.Execute(testToken);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(generatedAccessToken, result.Value.AccessToken);
-        Assert.Equal(generatedRefreshToken, result.Value.RefreshToken);
+        Assert.Equal(testTokenPair.AccessToken, result.Value.AccessToken);
+        Assert.Equal(testTokenPair.RefreshToken, result.Value.RefreshToken);
     }
 
     [Fact]
@@ -119,17 +117,17 @@ public class RefreshTokensUseCaseTests
         var testToken = "test-token";
         var sessionId = CreateTestSession(testToken);
 
-        ArchivedToken actualArchivedToken = null!;
+        RefreshToken actualRefreshToken = null!;
 
         archivedTokensRepositoryMock
-            .Setup(r => r.CreateAndFlush(It.IsAny<ArchivedToken>()))
-            .Callback((ArchivedToken a) => actualArchivedToken = a);
+            .Setup(r => r.CreateAndFlush(It.IsAny<RefreshToken>()))
+            .Callback((RefreshToken a) => actualRefreshToken = a);
 
         await useCase.Execute(existingAccount.Id, testToken);
 
-        Assert.NotNull(actualArchivedToken);
-        Assert.Equal(testToken, actualArchivedToken.Token);
-        Assert.Equal(sessionId, actualArchivedToken.SessionId);
+        Assert.NotNull(actualRefreshToken);
+        Assert.Equal(testToken, actualRefreshToken.Token);
+        Assert.Equal(sessionId, actualRefreshToken.SessionId);
     }
 
     [Fact]
@@ -155,7 +153,7 @@ public class RefreshTokensUseCaseTests
     {
         accountsRepositoryMock.Verify(r => r.UpdateAndFlush(It.IsAny<Account>()), Times.Never);
         archivedTokensRepositoryMock.Verify(
-            r => r.CreateAndFlush(It.IsAny<ArchivedToken>()),
+            r => r.CreateAndFlush(It.IsAny<RefreshToken>()),
             Times.Never
         );
     }
